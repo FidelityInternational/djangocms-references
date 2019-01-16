@@ -20,9 +20,3 @@ Run::
 
 Add ``djangocms_references`` to your project's ``INSTALLED_APPS``.
 
-Run::
-
-    python manage.py migrate djangocms_references
-
-to perform the application's database migrations.
-
