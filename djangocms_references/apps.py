@@ -4,6 +4,6 @@ from django.apps import AppConfig
 from django.utils.translation import ugettext_lazy as _
 
 
-class ReferencesConfig(AppConfig):
+class ReferenceConfig(AppConfig):
     name = "djangocms_references"
-    verbose_name = _("django CMS References")
+    verbose_name = _("django CMS Reference")

@@ -1,5 +1,6 @@
-import djangocms_references
 from setuptools import find_packages, setup
+
+import djangocms_references
 
 
 INSTALL_REQUIREMENTS = ["Django>=1.11,<2.0", "django-cms>=3.5.0"]
