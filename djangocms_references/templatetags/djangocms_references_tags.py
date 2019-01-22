@@ -19,4 +19,8 @@ def object_model(obj):
     """
     Displays the model name of the obj.
     """
+    if not hasattr(obj, "_meta"):
+        raise template.TemplateSyntaxError(
+            "object_model tag requires a model object as argument"
+        )
     return obj._meta.model_name
