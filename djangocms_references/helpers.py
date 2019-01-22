@@ -1,7 +1,23 @@
+from contextlib import suppress
+
 from django.apps import apps
 from django.db.models import Q
 
-from djangocms_versioning import versionables
+
+def get_versionable_for_content(content):
+    try:
+        from djangocms_versioning import versionables
+    except ImportError:
+        return
+    with suppress(KeyError):
+        return versionables.for_content(content)
+
+
+def get_relation(field_name, versionable):
+    if versionable:
+        content_name = versionable.grouper_field.remote_field.get_accessor_name()
+        return "{}__{}".format(field_name, content_name)
+    return field_name
 
 
 def get_extension():
@@ -10,14 +26,15 @@ def get_extension():
 
 
 def _get_reference_models(content_model, models):
-    versionable = versionables.for_content(content_model)
-    grouper = versionable.grouper_model
-    for model, fields in models[grouper].items():
+    versionable = get_versionable_for_content(content_model)
+    if versionable:
+        target_model = versionable.grouper_model
+    else:
+        target_model = content_model
+    for model, fields in models[target_model].items():
         relations = []
         for field in fields:
-            grouper_name = versionable.grouper_field.name
-            content_name = versionable.grouper_field.remote_field.get_accessor_name()
-            relations.append("{}__{}".format(grouper_name, content_name))
+            relations.append(get_relation(field, versionable))
         yield model, relations
 
 

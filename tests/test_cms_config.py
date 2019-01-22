@@ -7,8 +7,8 @@ from django.test import TestCase
 from cms.models import Page
 
 from djangocms_references.cms_config import ReferencesCMSExtension
-from djangocms_references.test_utils.app_1.models import TestModel1, TestModel2
-from djangocms_references.test_utils.app_2.models import TestModel3, TestModel4
+from djangocms_references.test_utils.app_1.models import Child, Parent
+# from djangocms_references.test_utils.app_2.models import TestModel3, TestModel4
 
 
 class CMSConfigTestCase(TestCase):
@@ -16,42 +16,42 @@ class CMSConfigTestCase(TestCase):
         """CMS config with missing reference_model attributes"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_referencess_enabled=True, app_config=Mock(label="blah_cms_config")
+            djangocms_references_enabled=True, app_config=Mock(label="blah_cms_config")
         )
 
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
-    def test_int_reference_models_cms_config_parameter(self):
-        """CMS config with int as reference_models as it expect dict object"""
+    def test_int_reference_fields_cms_config_parameter(self):
+        """CMS config with int as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_referencess_enabled=True,
-            reference_models=23234,
+            djangocms_references_enabled=True,
+            reference_fields=23234,
             app_config=Mock(label="blah_cms_config"),
         )
 
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
-    def test_string_reference_models_cms_config_parameter(self):
-        """CMS config with string as reference_models as it expect dict object"""
+    def test_string_reference_fields_cms_config_parameter(self):
+        """CMS config with string as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_referencess_enabled=True,
-            reference_models="dummy",
+            djangocms_references_enabled=True,
+            reference_fields="dummy",
             app_config=Mock(label="blah_cms_config"),
         )
 
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
-    def test_list_reference_models_cms_config_parameter(self):
-        """CMS config with list as reference_models as it expect dict object"""
+    def test_list_reference_fields_cms_config_parameter(self):
+        """CMS config with list as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_referencess_enabled=True,
-            reference_models=[1, 2],
+            djangocms_references_enabled=True,
+            reference_fields=[1, 2],
             app_config=Mock(label="blah_cms_config"),
         )
 
@@ -62,32 +62,29 @@ class CMSConfigTestCase(TestCase):
         """CMS config with valid configuration"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_referencess_enabled=True,
-            reference_models={
-                TestModel1: [],
-                TestModel2: [],
-                TestModel3: [],
-                TestModel4: [],
+            djangocms_references_enabled=True,
+            reference_fields={
+                Child.parent,
             },
             app_config=Mock(label="blah_cms_config"),
         )
 
         extensions.configure_app(cms_config)
-        references_app_models = apps.get_app_config(
+        reference_models = apps.get_app_config(
             "djangocms_references"
-        ).cms_extension.references_app_models
+        ).cms_extension.reference_models
 
-        self.assertTrue(TestModel1 in references_app_models.keys())
-        self.assertTrue(TestModel2 in references_app_models.keys())
-        self.assertTrue(TestModel3 in references_app_models.keys())
-        self.assertTrue(TestModel4 in references_app_models.keys())
+        self.assertTrue(Child not in reference_models.keys())
+        self.assertTrue(Parent in reference_models.keys())
+        self.assertTrue(Child in reference_models[Parent])
+        self.assertTrue('parent' in reference_models[Parent][Child])
 
 
 class IntegrationTestCase(TestCase):
     def test_config_with_multiple_apps(self):
-        references_app_models = apps.get_app_config(
+        reference_models = apps.get_app_config(
             "djangocms_references"
-        ).cms_extension.references_app_models
-        expected_models = [TestModel1, TestModel2, TestModel3, TestModel4, Page]
+        ).cms_extension.reference_models
+        expected_models = [Parent]
 
-        self.assertCountEqual(references_app_models.keys(), expected_models)
+        self.assertCountEqual(reference_models.keys(), expected_models)

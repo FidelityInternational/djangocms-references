@@ -31,7 +31,7 @@ class ReferencesCMSExtension(CMSAppExtension):
             store[related_model][model].add(field.field.name)
 
     def configure_app(self, cms_config):
-        if hasattr(cms_config, "reference_fields"):
+        if getattr(cms_config, "reference_fields", None) is not None:
             reference_fields = getattr(cms_config, "reference_fields")
             if isinstance(reference_fields, set):
                 self.register_fields(reference_fields)
