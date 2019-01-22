@@ -1,0 +1,23 @@
+
+
+<br/>
+<br/>
+
+<h1>Related CMS Objects</h1>
+
+
+<h2>Content type objects:</h2>
+{% for item in querysets %}
+      <a href="{{ item.preview_url }}">{{ item }}</a>  <br/>
+{% empty %}
+    <p>There are no related content type objects</p>
+{% endfor %}
+
+<h2>Plugins objects:</h2>
+{% for plugins in plugin_querysets %}
+    {% for item in plugins %}
+      <a href="{{ item.placeholder.source.get_absolute_url }}">{{ item.placeholder.source }}</a>  <br/>
+    {% endfor %}
+{% empty %}
+    <p>There are no related plugin objects</p>
+{% endfor %}
