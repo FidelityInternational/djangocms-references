@@ -1,8 +1,10 @@
-from django.test import TestCase
 from django.template import Context, Template
-from .factories import PageContentFactory
-from cms.toolbar.utils import get_object_preview_url
 from django.template.exceptions import TemplateSyntaxError
+from django.test import TestCase
+
+from cms.toolbar.utils import get_object_preview_url
+
+from .factories import PageContentFactory
 
 
 class ReferencesTemplateTagTest(TestCase):

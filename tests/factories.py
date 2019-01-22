@@ -7,8 +7,9 @@ from django.contrib.sites.models import Site
 from cms.models import Page, PageContent, TreeNode
 
 import factory
-from djangocms_versioning.models import Version
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
+
+from djangocms_versioning.models import Version
 
 
 class UserFactory(factory.django.DjangoModelFactory):
