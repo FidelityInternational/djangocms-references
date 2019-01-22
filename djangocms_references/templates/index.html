@@ -1,23 +1,65 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static djangocms_references_tags %}
 
+{% block content %}
+<h1>CMS References</h1>
 
-<br/>
-<br/>
+<div class="results">
+    <h5>Content type objects:</h5>
+    <br/>
+     <table id="result_list">
 
-<h1>Related CMS Objects</h1>
+        <thead >
+            <tr>
+                <th>{% trans "Title" %}</th>
+                <th>{% trans "URL" %}</th>
+                <th>{% trans "Content Type" %}</th>
+            </tr>
+        </thead>
 
+        <tbody>
+         {% for obj in querysets %}
+          <tr>
+             <td>{{ obj }}</td>
+             <td><a href="{% object_preview_url obj %}">{% object_preview_url obj %}</a>  </td>
+             <td>{% object_model obj.placeholder.source %}</td>
+          </tr>
+        {% empty %}
+         <tr>
+             <td colspan="3"><strong>{% trans "There are no related content type objects" %}</strong></td>
+         </tr>
+        {% endfor %}
+        </tbody>
+     </table>
 
-<h2>Content type objects:</h2>
-{% for item in querysets %}
-      <a href="{{ item.preview_url }}">{{ item }}</a>  <br/>
-{% empty %}
-    <p>There are no related content type objects</p>
-{% endfor %}
+    <br/>
+    <h5>Plugins objects:</h5>
+    <br/>
+     <table id="result_list">
+                <thead>
+                    <tr>
+                        <th>{% trans "Title" %}</th>
+                        <th>{% trans "URL" %}</th>
+                        <th>{% trans "Content Type" %}</th>
 
-<h2>Plugins objects:</h2>
-{% for plugins in plugin_querysets %}
-    {% for item in plugins %}
-      <a href="{{ item.placeholder.source.get_absolute_url }}">{{ item.placeholder.source }}</a>  <br/>
+                    </tr>
+                </thead>
+                <tbody>
+    {% for plugins in plugin_querysets %}
+        {% for obj in plugins %}
+            <tr>
+             <td>{{ obj.placeholder.source }}</td>
+             <td><a href="{%  object_preview_url obj.placeholder.source %}">{%  object_preview_url obj.placeholder.source %}</a>  </td>
+             <td>{%  object_model obj.placeholder.source %}</td>
+            </tr>
+        {% endfor %}
+    {% empty %}
+          <tr>
+             <td colspan="3"><strong>{% trans "There are no related plugin objects" %}</strong></td>
+         </tr>
     {% endfor %}
-{% empty %}
-    <p>There are no related plugin objects</p>
-{% endfor %}
+                </tbody>
+     </table>
+</div>
+
+{% endblock %}
