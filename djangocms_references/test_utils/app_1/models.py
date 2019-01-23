@@ -7,3 +7,7 @@ class Parent(models.Model):
 
 class Child(models.Model):
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE)
+
+
+class UnknownChild(models.Model):
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE)

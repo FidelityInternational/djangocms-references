@@ -7,13 +7,15 @@ from django.test import TestCase
 from djangocms_references import helpers
 from djangocms_references.helpers import (
     _get_reference_models,
+    _get_reference_plugin_instances,
     get_extension,
     get_filters,
     get_reference_models,
+    get_reference_objects,
     get_reference_plugins,
     get_relation,
 )
-from djangocms_references.test_utils.app_1.models import Child, Parent
+from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
 
 
 class GetRelationTestCase(TestCase):
@@ -105,14 +107,39 @@ class GetReferenceModelsTestCase(TestCase):
             )
 
 
-# class GetFiltersTestCase(TestCase):
-#     def test_get_filters_empty(self):
-#         self.assertEqual(get_filters("foo", []), Q())
-#
-#     def test_get_filters(self):
-#         self.assertEqual(get_filters("foo", ["bar"]), Q(bar="foo"))
-#
-#     def test_get_filters_multiple(self):
-#         self.assertEqual(
-#             get_filters("foo", ["bar", "baz"]), Q(bar="foo") | Q(baz="foo")
-#         )
+class GetFiltersTestCase(TestCase):
+    def test_get_filters_empty(self):
+        self.assertEqual(get_filters("foo", []), Q())
+
+    def test_get_filters(self):
+        self.assertEqual(get_filters("foo", ["bar"]), Q(bar="foo"))
+
+    def test_get_filters_multiple(self):
+        self.assertEqual(
+            get_filters("foo", ["bar", "baz"]), Q(bar="foo") | Q(baz="foo")
+        )
+
+
+class GetReferenceObjectsTestCase(TestCase):
+    def test__get_reference_plugin_instances_prefetching(self):
+        queryset = Mock()
+        with patch.object(
+            helpers, "_get_reference_objects", return_value=[queryset],
+        ) as mock:
+            list(_get_reference_plugin_instances('foo', 'bar'))[0]
+            queryset.prefetch_related.assert_called_once_with('placeholder__source')
+            mock.assert_called_once_with('foo', 'bar')
+
+    def test_get_reference_objects(self):
+        parent = Parent.objects.create()
+        child1 = Child.objects.create(parent=parent)
+        child2 = Child.objects.create(parent=parent)
+        child3 = UnknownChild.objects.create(parent=parent)
+        querysets, plugin_querysets = get_reference_objects(parent)
+        self.assertFalse(plugin_querysets)
+        self.assertEqual(len(querysets), 1)
+        self.assertIn(Child, [qs.model for qs in querysets])
+        self.assertNotIn(UnknownChild, [qs.model for qs in querysets])
+        self.assertIn(child1, querysets[0])
+        self.assertIn(child2, querysets[0])
+        self.assertNotIn(child3, querysets[0])

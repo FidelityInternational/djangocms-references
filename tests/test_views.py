@@ -9,6 +9,7 @@ from django.test.utils import override_settings
 from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
+import djangocms_references.urls
 from djangocms_references.test_utils.factories import (
     AliasContentFacotry,
     AliasPluginFactory,
@@ -21,9 +22,9 @@ from djangocms_references.views import ReferencesView
 urlpatterns = [
     url(
         r"^references/",
-        include("djangocms_references.urls", namespace="djangocms_references"),
+        include(djangocms_references.urls),
     ),
-    url(r"^admin/", include(admin.site.urls)),
+    url(r"^admin/", admin.site.urls),
 ]
 
 
