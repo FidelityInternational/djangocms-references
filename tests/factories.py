@@ -4,11 +4,43 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 
-from cms.models import Page, PageContent, TreeNode
+from cms.models import Page, PageContent, Placeholder, TreeNode
 
 import factory
+from djangocms_alias.models import Alias, AliasContent, AliasPlugin, Category
 from djangocms_versioning.models import Version
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
+
+
+class PlaceholderFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Placeholder
+
+
+class CategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Category
+
+
+class AliasFactory(factory.django.DjangoModelFactory):
+    category = factory.SubFactory(CategoryFactory)
+
+    class Meta:
+        model = Alias
+
+
+class AliasContentFacotry(factory.django.DjangoModelFactory):
+    alias = factory.SubFactory(AliasFactory)
+
+    class Meta:
+        model = AliasContent
+
+
+class AliasPluginFactory(factory.django.DjangoModelFactory):
+    alias = factory.SubFactory(AliasFactory)
+
+    class Meta:
+        model = AliasPlugin
 
 
 class UserFactory(factory.django.DjangoModelFactory):

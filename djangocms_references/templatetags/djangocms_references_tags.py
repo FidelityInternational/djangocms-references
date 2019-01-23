@@ -11,6 +11,10 @@ def object_preview_url(obj):
     """
     Displays the preview url for obj.
     """
+    if isinstance(obj, (int, str)):
+        raise template.TemplateSyntaxError(
+            "object_preview_url tag requires a model object as argument"
+        )
     return get_object_preview_url(obj)
 
 

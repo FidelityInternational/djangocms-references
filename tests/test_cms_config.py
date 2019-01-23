@@ -4,10 +4,10 @@ from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-from cms.models import Page
-
 from djangocms_references.cms_config import ReferencesCMSExtension
 from djangocms_references.test_utils.app_1.models import Child, Parent
+
+
 # from djangocms_references.test_utils.app_2.models import TestModel3, TestModel4
 
 
@@ -63,9 +63,7 @@ class CMSConfigTestCase(TestCase):
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
             djangocms_references_enabled=True,
-            reference_fields={
-                Child.parent,
-            },
+            reference_fields={Child.parent},
             app_config=Mock(label="blah_cms_config"),
         )
 
@@ -77,7 +75,7 @@ class CMSConfigTestCase(TestCase):
         self.assertTrue(Child not in reference_models.keys())
         self.assertTrue(Parent in reference_models.keys())
         self.assertTrue(Child in reference_models[Parent])
-        self.assertTrue('parent' in reference_models[Parent][Child])
+        self.assertTrue("parent" in reference_models[Parent][Child])
 
 
 class IntegrationTestCase(TestCase):
