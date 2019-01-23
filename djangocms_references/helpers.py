@@ -1,16 +1,17 @@
 from contextlib import suppress
+from functools import lru_cache
 
 from django.apps import apps
 from django.db.models import Q
 
 
-def get_versionable_for_content(content):
+def get_versionable_for_content(content_model):
     try:
         from djangocms_versioning import versionables
     except ImportError:
         return
     with suppress(KeyError):
-        return versionables.for_content(content)
+        return versionables.for_content(content_model)
 
 
 def get_relation(field_name, versionable):
@@ -20,6 +21,7 @@ def get_relation(field_name, versionable):
     return field_name
 
 
+@lru_cache(maxsize=1)
 def get_extension():
     app = apps.get_app_config("djangocms_references")
     return app.cms_extension
@@ -48,13 +50,17 @@ def get_reference_plugins(content_model):
     yield from _get_reference_models(content_model, extension.reference_plugins)
 
 
+def get_filters(content, relations):
+    q = Q()
+    for relation in relations:
+        q |= Q(**{relation: content})
+    return q
+
+
 def _get_reference_objects(content, models_func):
     for reference in models_func(content.__class__):
         model, relations = reference
-        q = Q()
-        for relation in relations:
-            q |= Q(**{relation: content})
-        yield model.objects.filter(q)
+        yield model.objects.filter(get_filters(content, relations))
 
 
 def _get_reference_plugin_instances(content, model_func):
