@@ -105,14 +105,14 @@ class GetReferenceModelsTestCase(TestCase):
             )
 
 
-class GetFiltersTestCase(TestCase):
-    def test_get_filters_empty(self):
-        self.assertEqual(get_filters("foo", []), Q())
-
-    def test_get_filters(self):
-        self.assertEqual(get_filters("foo", ["bar"]), Q(bar="foo"))
-
-    def test_get_filters_multiple(self):
-        self.assertEqual(
-            get_filters("foo", ["bar", "baz"]), Q(bar="foo") | Q(baz="foo")
-        )
+# class GetFiltersTestCase(TestCase):
+#     def test_get_filters_empty(self):
+#         self.assertEqual(get_filters("foo", []), Q())
+#
+#     def test_get_filters(self):
+#         self.assertEqual(get_filters("foo", ["bar"]), Q(bar="foo"))
+#
+#     def test_get_filters_multiple(self):
+#         self.assertEqual(
+#             get_filters("foo", ["bar", "baz"]), Q(bar="foo") | Q(baz="foo")
+#         )

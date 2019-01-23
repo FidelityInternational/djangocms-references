@@ -1,29 +1,29 @@
-from django.conf import settings
 from django.conf.urls import include, url
+from django.contrib import admin
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import reverse
-from django.test import Client, RequestFactory
+from django.test import RequestFactory
 from django.test.utils import override_settings
 
 from cms.api import add_plugin
-from cms.models import Placeholder
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_references.views import ReferencesView
-
-from .factories import (
+from djangocms_references.test_utils.factories import (
     AliasContentFacotry,
     AliasPluginFactory,
     PageContentFactory,
     PlaceholderFactory,
 )
+from djangocms_references.views import ReferencesView
 
 
 urlpatterns = [
     url(
         r"^references/",
         include("djangocms_references.urls", namespace="djangocms_references"),
-    )
+    ),
+    url(r"^admin/", include(admin.site.urls)),
 ]
 
 
@@ -39,6 +39,31 @@ class ReferencesViewTestCases(CMSTestCase):
             kwargs={"content_type_id": self.content.pk, "object_id": self.page.id},
         )
         self.language = "en"
+
+    def test_view_endpoint_access_with_anonymous_user(self):
+        response = self.client.get(self.view_url)
+        redirect_url = "/admin/login/?next=" + self.view_url
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, redirect_url)
+
+    def test_view_endpoint_access_with_superuser(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.view_url)
+            self.assertEqual(response.status_code, 200)
+
+    def test_view_endpoint_standard_user_permission(self):
+        standard_user = self.get_standard_user()
+        with self.login_user_context(standard_user):
+            response = self.client.get(self.view_url)
+            redirect_url = "/admin/login/?next=" + self.view_url
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.url, redirect_url)
+
+    def test_view_endpoint_access_staff_user(self):
+        staff_user = self.get_staff_user_with_no_permissions()
+        with self.login_user_context(staff_user):
+            response = self.client.get(self.view_url)
+            self.assertEqual(response.status_code, 200)
 
     def test_view_expected_querysets_exists_in_context(self):
         request = self.factory.get(self.view_url)

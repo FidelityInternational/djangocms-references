@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from cms.toolbar.utils import get_object_preview_url
 
-from .factories import PageContentFactory
+from djangocms_references.test_utils.factories import PageContentFactory
 
 
 class ReferencesTemplateTagTest(TestCase):
