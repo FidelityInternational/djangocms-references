@@ -1,3 +1,4 @@
+from unittest import skipIf
 from unittest.mock import Mock, patch
 
 from django.apps import apps
@@ -5,6 +6,7 @@ from django.db.models import Q
 from django.test import TestCase
 
 from djangocms_references import helpers
+from djangocms_references.compat import DJANGO_GTE_21
 from djangocms_references.helpers import (
     _get_reference_models,
     _get_reference_plugin_instances,
@@ -107,6 +109,10 @@ class GetReferenceModelsTestCase(TestCase):
             )
 
 
+@skipIf(
+    not DJANGO_GTE_21,
+    "Reliable Q object comparison is available starting with Django 2.1",
+)
 class GetFiltersTestCase(TestCase):
     def test_get_filters_empty(self):
         self.assertEqual(get_filters("foo", []), Q())
@@ -124,11 +130,11 @@ class GetReferenceObjectsTestCase(TestCase):
     def test__get_reference_plugin_instances_prefetching(self):
         queryset = Mock()
         with patch.object(
-            helpers, "_get_reference_objects", return_value=[queryset],
+            helpers, "_get_reference_objects", return_value=[queryset]
         ) as mock:
-            list(_get_reference_plugin_instances('foo', 'bar'))[0]
-            queryset.prefetch_related.assert_called_once_with('placeholder__source')
-            mock.assert_called_once_with('foo', 'bar')
+            list(_get_reference_plugin_instances("foo", "bar"))[0]
+            queryset.prefetch_related.assert_called_once_with("placeholder__source")
+            mock.assert_called_once_with("foo", "bar")
 
     def test_get_reference_objects(self):
         parent = Parent.objects.create()

@@ -20,10 +20,7 @@ from djangocms_references.views import ReferencesView
 
 
 urlpatterns = [
-    url(
-        r"^references/",
-        include(djangocms_references.urls),
-    ),
+    url(r"^references/", include(djangocms_references.urls)),
     url(r"^admin/", admin.site.urls),
 ]
 
