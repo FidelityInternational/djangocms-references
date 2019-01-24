@@ -1,7 +1,7 @@
 from collections import defaultdict
 from contextlib import suppress
-from itertools import groupby
 from functools import lru_cache, partial
+from itertools import groupby
 from operator import itemgetter
 
 from django.apps import apps
