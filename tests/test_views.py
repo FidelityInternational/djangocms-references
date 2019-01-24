@@ -5,14 +5,18 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from django.test.utils import override_settings
 
+from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
 import djangocms_references.urls
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
+    PlaceholderFactory,
     PollContentFactory,
     PollFactory,
+    PollPluginFactory,
 )
+from djangocms_references.test_utils.polls.models import PollPlugin
 from djangocms_references.views import ReferencesView
 
 
@@ -71,13 +75,14 @@ class ReferencesViewTestCases(CMSTestCase):
 
         self.assertIn("querysets", response)
 
-    def test_context_data_has_related_poll_in_querysets(self):
+    def test_view_assigning_three_child_to_one_parent(self):
         request = self.factory.get(self.view_url)
         request.user = self.superuser
         request.GET = {"state": "draft_and_published"}
-        # Two poll plugins attached to poll
+
+        # Three poll content attached to poll
         poll = PollFactory()
-        poll_content_1 = PollContentFactory(poll=poll)
+        poll_content_1 = PollContentFactory(poll=poll)  # flake8: noqa
         poll_content_2 = PollContentFactory(poll=poll)  # flake8: noqa
         poll_content_3 = PollContentFactory(poll=poll)  # flake8: noqa
 
@@ -88,45 +93,39 @@ class ReferencesViewTestCases(CMSTestCase):
             "content_type_id": ContentType.objects.get_for_model(poll).pk,
             "object_id": poll.id,
         }
-
         response = view.get_context_data()
 
         self.assertIn("querysets", response)
 
-        # three pollcontent should appear in querysets
+        # three poll content objects should appear in querysets
         self.assertEqual(len(response["querysets"]), 3)
 
-    #
-    # def test_view_get_context_data_related_poll_with_page(self):
-    #     request = self.factory.get(self.view_url)
-    #     request['GET']= {
-    #         'state': 'draft_and_published',
-    #         'draft_and_published': True,
-    #     }
-    #     request.user = self.superuser
-    #
-    #     # three different poll plugins attached to poll
-    #     # pagecontent = PageContentFactory(title="test", language=self.language)
-    #     # page = pagecontent.page
-    #     # placeholder = PlaceholderFactory(
-    #     #     content_type=ContentType.objects.get_for_model(page), object_id=page.id
-    #     # )
-    #
-    #     poll_content = PollsContentFactory()
-    #     poll_plugin1 = PollsPluginFactory(polls=poll_content.polls)
-    #     poll_plugin2 = PollsPluginFactory(polls=poll_content.polls)
-    #
-    #     view = ReferencesView()
-    #     view.request = request
-    #     view.kwargs = {
-    #         "content_type_id": ContentType.objects.get_for_model(
-    #             poll_plugin1.polls
-    #         ).pk,
-    #         "object_id": poll_content.polls.id,
-    #     }
-    #     response = view.get_context_data()
-    #
-    #     self.assertIn("querysets", response)
-    #     # print(response["querysets"])
-    #     # three plugin should be related to poll
-    #     self.assertEqual(response["querysets"][0].count(), 3)
+    def test_view_poll_plugin_attached_to_page_should_return_related_page(self):
+        request = self.factory.get(self.view_url)
+        request.GET = {"state": "draft_and_published"}
+        request.user = self.superuser
+
+        pagecontent = PageContentFactory(title="test", language=self.language)
+        page = pagecontent.page
+        placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page), object_id=page.id
+        )
+
+        poll = PollFactory()
+        # Attach poll plugin to page
+        poll_plugin_1 = add_plugin(
+            placeholder, "PollPlugin", "en", poll=poll, template=0
+        )
+
+        view = ReferencesView()
+        view.request = request
+        view.kwargs = {
+            "content_type_id": ContentType.objects.get_for_model(poll_plugin_1).pk,
+            "object_id": poll_plugin_1.id,
+        }
+        response = view.get_context_data()
+
+        self.assertIn("querysets", response)
+
+        # queryset should contain page
+        self.assertEqual(len(response["querysets"]), 1)

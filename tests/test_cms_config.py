@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from djangocms_references.cms_config import ReferencesCMSExtension
 from djangocms_references.test_utils.app_1.models import Child, Parent
+from djangocms_references.test_utils.polls.models import Poll
 
 
 # from djangocms_references.test_utils.app_2.models import TestModel3, TestModel4
@@ -83,6 +84,6 @@ class IntegrationTestCase(TestCase):
         reference_models = apps.get_app_config(
             "djangocms_references"
         ).cms_extension.reference_models
-        expected_models = [Parent]
+        expected_models = [Parent, Poll]
 
         self.assertCountEqual(reference_models.keys(), expected_models)

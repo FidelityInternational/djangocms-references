@@ -35,4 +35,6 @@ class PollPlugin(CMSPlugin):
         choices=get_templates(),
         default=TEMPLATE_DEFAULT,
         max_length=255,
+        null=True,
+        blank=True,
     )
