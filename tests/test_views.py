@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import reverse
 from django.test import RequestFactory
@@ -67,11 +66,11 @@ class ReferencesViewTestCases(CMSTestCase):
         request = self.factory.get(self.view_url)
         request.user = self.superuser
 
-        view = ReferencesView(template_name="djagnocms_references/index.html")
+        view = ReferencesView()
+        view.request = request
         view.kwargs = {"content_type_id": self.content.id, "object_id": self.page.id}
         response = view.get_context_data()
         self.assertIn("querysets", response)
-        self.assertIn("plugin_querysets", response)
 
     def test_context_data_has_related_alias_in_querysets(self):
         request = self.factory.get(self.view_url)
@@ -82,7 +81,8 @@ class ReferencesViewTestCases(CMSTestCase):
         alias_plugin_1 = AliasPluginFactory(alias=alias_content.alias)
         alias_plugin_2 = AliasPluginFactory(alias=alias_content.alias)
 
-        view = ReferencesView(template_name="djagnocms_references/index.html")
+        view = ReferencesView()
+        view.request = request
         view.kwargs = {
             "content_type_id": ContentType.objects.get_for_model(
                 alias_plugin_1.alias
@@ -92,12 +92,9 @@ class ReferencesViewTestCases(CMSTestCase):
         response = view.get_context_data()
 
         self.assertIn("querysets", response)
-        self.assertIn("plugin_querysets", response)
-
-        self.assertEqual(len(response["querysets"]), 0)
 
         # two plugins should appear in plugin_queryset
-        self.assertEqual(response["plugin_querysets"][0].count(), 2)
+        self.assertEqual(response["querysets"][0].count(), 2)
 
     def test_view_get_context_data_related_alias_with_page(self):
         request = self.factory.get(self.view_url)
@@ -116,19 +113,19 @@ class ReferencesViewTestCases(CMSTestCase):
         # adding plugin using api should reflect in response
         add_plugin(
             placeholder, "Alias", language=self.language, alias=alias_content.alias
-        )  # flake8: noqa
+        )
 
-        view = ReferencesView(template_name="djagnocms_references/index.html")
+        view = ReferencesView()
+        view.request = request
         view.kwargs = {
             "content_type_id": ContentType.objects.get_for_model(
                 alias_plugin1.alias
             ).pk,
-            "object_id": alias_content.id,
+            "object_id": alias_content.alias.id,
         }
         response = view.get_context_data()
 
         self.assertIn("querysets", response)
-        self.assertIn("plugin_querysets", response)
-
+        # print(response["querysets"])
         # three plugin should be related to alias
-        self.assertEqual(response["plugin_querysets"][0].count(), 3)
+        self.assertEqual(response["querysets"][0].count(), 3)

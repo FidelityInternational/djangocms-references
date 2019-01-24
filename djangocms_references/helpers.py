@@ -1,8 +1,14 @@
+from collections import defaultdict
 from contextlib import suppress
-from functools import lru_cache
+from itertools import groupby
+from functools import lru_cache, partial
+from operator import itemgetter
 
 from django.apps import apps
-from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import F, Q
+
+from cms.models import CMSPlugin
 
 
 def get_versionable_for_content(content_model):
@@ -63,12 +69,81 @@ def _get_reference_objects(content, models_func):
         yield model.objects.filter(get_filters(content, relations))
 
 
-def _get_reference_plugin_instances(content, model_func):
-    for queryset in _get_reference_objects(content, model_func):
-        yield queryset.prefetch_related("placeholder__source")
-
-
 def get_reference_objects(content):
-    querysets = list(_get_reference_objects(content, get_reference_models))
-    plugins = list(_get_reference_plugin_instances(content, get_reference_plugins))
-    return querysets, plugins
+    yield from _get_reference_objects(content, get_reference_models)
+
+
+def contenttype_values_queryset(queryset):
+    return (
+        queryset.order_by()  # need to clear ordering,
+        # as ordering clauses are not allowed in subqueries
+        .annotate(
+            content_type=F("placeholder__content_type"),
+            object_id=F("placeholder__object_id"),
+        ).values("content_type", "object_id")
+    )
+
+
+def convert_plugin_querysets_to_sources(querysets):
+    # since plugins use concrete inheritance, it's safe to combine querysets
+    # with PKs of different plugin models
+    sources = contenttype_values_queryset(CMSPlugin.objects.none())
+    for queryset in querysets:
+        sources = sources.union(contenttype_values_queryset(queryset))
+    return sources.order_by("content_type")
+
+
+def get_reference_objects_from_plugins(content):
+    querysets = [
+        qs.filter(
+            # NOTE: This filters out static placeholders
+            Q(placeholder__content_type__isnull=False)
+        )
+        for qs in _get_reference_objects(content, get_reference_plugins)
+    ]
+    # `querysets` contains a list of plugin querysets,
+    # we want to end up with a list of source object (CMSPlugin.placeholder.source)
+    # querysets
+    sources = convert_plugin_querysets_to_sources(querysets)
+    for ctype_id, group_sources in groupby(sources, itemgetter("content_type")):
+        content_type = ContentType.objects.get_for_id(ctype_id)
+        yield content_type.get_all_objects_for_this_type(
+            pk__in=[source["object_id"] for source in group_sources]
+        )
+
+
+def filter_only_draft_and_published(queryset):
+    versionable = get_versionable_for_content(queryset.model)
+    if versionable:
+        from djangocms_versioning.constants import DRAFT, PUBLISHED
+
+        return queryset.filter(versions__state__in=(DRAFT, PUBLISHED))
+    return queryset
+
+
+def combine_querysets_of_same_models(*querysets_list):
+    """Given multiple List[Queryset[Model]] arguments,
+    returns a single List[Queryset[Model]], with querysets being
+    combined with other querysets of the same model.
+    """
+    model_map = defaultdict(list)
+    for querysets in querysets_list:
+        for queryset in querysets:
+            model_map[queryset.model].append(queryset)
+    for querysets in model_map.values():
+        combined = querysets.pop()
+        for queryset in querysets:
+            combined |= queryset
+        yield combined
+
+
+def get_all_reference_objects(content, draft_and_published=False):
+    if draft_and_published:
+        postprocess = partial(map, filter_only_draft_and_published)
+    else:
+        postprocess = list
+    return postprocess(
+        combine_querysets_of_same_models(
+            get_reference_objects(content), get_reference_objects_from_plugins(content)
+        )
+    )

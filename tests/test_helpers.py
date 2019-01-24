@@ -9,11 +9,10 @@ from djangocms_references import helpers
 from djangocms_references.compat import DJANGO_GTE_21
 from djangocms_references.helpers import (
     _get_reference_models,
-    _get_reference_plugin_instances,
+    get_all_reference_objects,
     get_extension,
     get_filters,
     get_reference_models,
-    get_reference_objects,
     get_reference_plugins,
     get_relation,
 )
@@ -127,22 +126,12 @@ class GetFiltersTestCase(TestCase):
 
 
 class GetReferenceObjectsTestCase(TestCase):
-    def test__get_reference_plugin_instances_prefetching(self):
-        queryset = Mock()
-        with patch.object(
-            helpers, "_get_reference_objects", return_value=[queryset]
-        ) as mock:
-            list(_get_reference_plugin_instances("foo", "bar"))[0]
-            queryset.prefetch_related.assert_called_once_with("placeholder__source")
-            mock.assert_called_once_with("foo", "bar")
-
-    def test_get_reference_objects(self):
+    def test_get_all_reference_objects(self):
         parent = Parent.objects.create()
         child1 = Child.objects.create(parent=parent)
         child2 = Child.objects.create(parent=parent)
         child3 = UnknownChild.objects.create(parent=parent)
-        querysets, plugin_querysets = get_reference_objects(parent)
-        self.assertFalse(plugin_querysets)
+        querysets = get_all_reference_objects(parent)
         self.assertEqual(len(querysets), 1)
         self.assertIn(Child, [qs.model for qs in querysets])
         self.assertNotIn(UnknownChild, [qs.model for qs in querysets])

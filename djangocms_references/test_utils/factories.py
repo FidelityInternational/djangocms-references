@@ -39,6 +39,7 @@ class AliasContentFacotry(factory.django.DjangoModelFactory):
 
 class AliasPluginFactory(factory.django.DjangoModelFactory):
     alias = factory.SubFactory(AliasFactory)
+    placeholder = factory.SubFactory(PlaceholderFactory)
 
     class Meta:
         model = AliasPlugin

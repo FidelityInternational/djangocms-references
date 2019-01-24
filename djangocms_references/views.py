@@ -1,15 +1,16 @@
 from django.contrib.contenttypes.models import ContentType
 from django.http.response import HttpResponseBadRequest
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 
-from .helpers import get_reference_objects
+from .helpers import get_all_reference_objects
 
 
 class ReferencesView(TemplateView):
-    template_name = "index.html"
+    template_name = "djangocms_references/references.html"
 
     def get_context_data(self, **kwargs):
-        context = super(self.__class__, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         content_type = ContentType.objects.get_for_id(
             int(self.kwargs.get("content_type_id"))
@@ -17,14 +18,24 @@ class ReferencesView(TemplateView):
         if not content_type:
             return HttpResponseBadRequest()
 
+        model = content_type.model_class()
+
         try:
-            object_content = content_type.model_class()._base_manager.get(
+            obj = content_type.get_object_for_this_type(
                 pk=int(self.kwargs["object_id"])
             )
-        except content_type.model_class().DoesNotExist:
+        except (model.DoesNotExist, TypeError):
             return HttpResponseBadRequest()
 
-        querysets, plugin_querysets = get_reference_objects(object_content)
-        context["querysets"] = querysets
-        context["plugin_querysets"] = plugin_querysets
+        draft_and_published = self.request.GET.get("state") == "draft_and_published"
+
+        querysets = get_all_reference_objects(obj, draft_and_published)
+        context.update(
+            {
+                "title": _("References of {object}").format(object=obj),
+                "opts": model._meta,
+                "querysets": querysets,
+                "draft_and_published": draft_and_published,
+            }
+        )
         return context

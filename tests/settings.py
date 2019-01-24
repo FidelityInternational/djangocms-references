@@ -1,5 +1,6 @@
 HELPER_SETTINGS = {
     "INSTALLED_APPS": [
+        "django_extensions",
         "djangocms_references",
         "djangocms_versioning",
         "djangocms_alias",
