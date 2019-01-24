@@ -85,6 +85,7 @@ class ReferencesViewTestCases(CMSTestCase):
         poll_content_1 = PollContentFactory(poll=poll)  # flake8: noqa
         poll_content_2 = PollContentFactory(poll=poll)  # flake8: noqa
         poll_content_3 = PollContentFactory(poll=poll)  # flake8: noqa
+        poll_content_4 = PollContentFactory(poll=PollFactory())  # flake8: noqa
 
         view = ReferencesView()
         view.request = request
@@ -98,7 +99,13 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertIn("querysets", response)
 
         # three poll content objects should appear in querysets
-        self.assertEqual(len(response["querysets"]), 3)
+        self.assertEqual(response["querysets"][0].count(), 3)
+        self.assertIn(poll_content_1, response["querysets"][0])
+        self.assertIn(poll_content_2, response["querysets"][0])
+        self.assertIn(poll_content_3, response["querysets"][0])
+
+        # poll_content_4 shouldn't be in queryset
+        self.assertNotIn(poll_content_4, response["querysets"][0])
 
     def test_view_poll_plugin_attached_to_page_should_return_related_page(self):
         request = self.factory.get(self.view_url)
@@ -127,5 +134,6 @@ class ReferencesViewTestCases(CMSTestCase):
 
         self.assertIn("querysets", response)
 
-        # queryset should contain page
-        self.assertEqual(len(response["querysets"]), 1)
+        # Queryset should contain page
+        self.assertEqual(response["querysets"][0].count(), 1)
+        self.assertIn(page, response["querysets"][0])
