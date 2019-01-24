@@ -138,12 +138,12 @@ def combine_querysets_of_same_models(*querysets_list):
 
 
 def get_all_reference_objects(content, draft_and_published=False):
+    postprocess = None
     if draft_and_published:
         postprocess = partial(map, filter_only_draft_and_published)
-    else:
-        postprocess = list
-    return postprocess(
-        combine_querysets_of_same_models(
-            get_reference_objects(content), get_reference_objects_from_plugins(content)
-        )
+    querysets = combine_querysets_of_same_models(
+        get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
+    if postprocess:
+        querysets = postprocess(querysets)
+    return list(querysets)
