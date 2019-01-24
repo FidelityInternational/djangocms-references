@@ -7,10 +7,10 @@ from django.contrib.sites.models import Site
 from cms.models import Page, PageContent, Placeholder, TreeNode
 
 import factory
+from djangocms_versioning.models import Version
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
-from djangocms_alias.models import Alias, AliasContent, AliasPlugin, Category
-from djangocms_versioning.models import Version
+from djangocms_references.test_utils.polls.models import Poll, PollContent, PollPlugin
 
 
 class PlaceholderFactory(factory.django.DjangoModelFactory):
@@ -18,31 +18,23 @@ class PlaceholderFactory(factory.django.DjangoModelFactory):
         model = Placeholder
 
 
-class CategoryFactory(factory.django.DjangoModelFactory):
+class PollFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Category
+        model = Poll
 
 
-class AliasFactory(factory.django.DjangoModelFactory):
-    category = factory.SubFactory(CategoryFactory)
-
-    class Meta:
-        model = Alias
-
-
-class AliasContentFacotry(factory.django.DjangoModelFactory):
-    alias = factory.SubFactory(AliasFactory)
+class PollContentFactory(factory.django.DjangoModelFactory):
+    poll = factory.SubFactory(PollFactory)
 
     class Meta:
-        model = AliasContent
+        model = PollContent
 
 
-class AliasPluginFactory(factory.django.DjangoModelFactory):
-    alias = factory.SubFactory(AliasFactory)
-    placeholder = factory.SubFactory(PlaceholderFactory)
+class PollPluginFactory(factory.django.DjangoModelFactory):
+    poll = factory.SubFactory(PollFactory)
 
     class Meta:
-        model = AliasPlugin
+        model = PollPlugin
 
 
 class UserFactory(factory.django.DjangoModelFactory):

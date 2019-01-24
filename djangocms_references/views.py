@@ -30,6 +30,7 @@ class ReferencesView(TemplateView):
         draft_and_published = self.request.GET.get("state") == "draft_and_published"
 
         querysets = get_all_reference_objects(obj, draft_and_published)
+
         context.update(
             {
                 "title": _("References of {object}").format(object=obj),

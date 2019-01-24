@@ -5,15 +5,13 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from django.test.utils import override_settings
 
-from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
 import djangocms_references.urls
 from djangocms_references.test_utils.factories import (
-    AliasContentFacotry,
-    AliasPluginFactory,
     PageContentFactory,
-    PlaceholderFactory,
+    PollContentFactory,
+    PollFactory,
 )
 from djangocms_references.views import ReferencesView
 
@@ -62,70 +60,73 @@ class ReferencesViewTestCases(CMSTestCase):
             response = self.client.get(self.view_url)
             self.assertEqual(response.status_code, 200)
 
-    def test_view_expected_querysets_exists_in_context(self):
+    def test_view_response_should_contain_querysets(self):
         request = self.factory.get(self.view_url)
         request.user = self.superuser
-
+        request.GET = {"state": "draft_and_published"}
         view = ReferencesView()
         view.request = request
         view.kwargs = {"content_type_id": self.content.id, "object_id": self.page.id}
         response = view.get_context_data()
+
         self.assertIn("querysets", response)
 
-    def test_context_data_has_related_alias_in_querysets(self):
+    def test_context_data_has_related_poll_in_querysets(self):
         request = self.factory.get(self.view_url)
         request.user = self.superuser
-
-        # Two alias plugins attached to alias
-        alias_content = AliasContentFacotry()
-        alias_plugin_1 = AliasPluginFactory(alias=alias_content.alias)
-        alias_plugin_2 = AliasPluginFactory(alias=alias_content.alias)
+        request.GET = {"state": "draft_and_published"}
+        # Two poll plugins attached to poll
+        poll = PollFactory()
+        poll_content_1 = PollContentFactory(poll=poll)
+        poll_content_2 = PollContentFactory(poll=poll)  # flake8: noqa
+        poll_content_3 = PollContentFactory(poll=poll)  # flake8: noqa
 
         view = ReferencesView()
         view.request = request
+
         view.kwargs = {
-            "content_type_id": ContentType.objects.get_for_model(
-                alias_plugin_1.alias
-            ).pk,
-            "object_id": alias_plugin_1.alias.id,
+            "content_type_id": ContentType.objects.get_for_model(poll).pk,
+            "object_id": poll.id,
         }
+
         response = view.get_context_data()
 
         self.assertIn("querysets", response)
 
-        # two plugins should appear in plugin_queryset
-        self.assertEqual(response["querysets"][0].count(), 2)
+        # three pollcontent should appear in querysets
+        self.assertEqual(len(response["querysets"]), 3)
 
-    def test_view_get_context_data_related_alias_with_page(self):
-        request = self.factory.get(self.view_url)
-        request.user = self.superuser
-
-        # three different alias plugins attached to alias
-        pagecontent = PageContentFactory(title="test", language=self.language)
-        page = pagecontent.page
-        placeholder = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page), object_id=page.id
-        )
-        alias_content = AliasContentFacotry()
-        alias_plugin1 = AliasPluginFactory(alias=alias_content.alias)
-        alias_plugin2 = AliasPluginFactory(alias=alias_content.alias)
-
-        # adding plugin using api should reflect in response
-        add_plugin(
-            placeholder, "Alias", language=self.language, alias=alias_content.alias
-        )
-
-        view = ReferencesView()
-        view.request = request
-        view.kwargs = {
-            "content_type_id": ContentType.objects.get_for_model(
-                alias_plugin1.alias
-            ).pk,
-            "object_id": alias_content.alias.id,
-        }
-        response = view.get_context_data()
-
-        self.assertIn("querysets", response)
-        # print(response["querysets"])
-        # three plugin should be related to alias
-        self.assertEqual(response["querysets"][0].count(), 3)
+    #
+    # def test_view_get_context_data_related_poll_with_page(self):
+    #     request = self.factory.get(self.view_url)
+    #     request['GET']= {
+    #         'state': 'draft_and_published',
+    #         'draft_and_published': True,
+    #     }
+    #     request.user = self.superuser
+    #
+    #     # three different poll plugins attached to poll
+    #     # pagecontent = PageContentFactory(title="test", language=self.language)
+    #     # page = pagecontent.page
+    #     # placeholder = PlaceholderFactory(
+    #     #     content_type=ContentType.objects.get_for_model(page), object_id=page.id
+    #     # )
+    #
+    #     poll_content = PollsContentFactory()
+    #     poll_plugin1 = PollsPluginFactory(polls=poll_content.polls)
+    #     poll_plugin2 = PollsPluginFactory(polls=poll_content.polls)
+    #
+    #     view = ReferencesView()
+    #     view.request = request
+    #     view.kwargs = {
+    #         "content_type_id": ContentType.objects.get_for_model(
+    #             poll_plugin1.polls
+    #         ).pk,
+    #         "object_id": poll_content.polls.id,
+    #     }
+    #     response = view.get_context_data()
+    #
+    #     self.assertIn("querysets", response)
+    #     # print(response["querysets"])
+    #     # three plugin should be related to poll
+    #     self.assertEqual(response["querysets"][0].count(), 3)

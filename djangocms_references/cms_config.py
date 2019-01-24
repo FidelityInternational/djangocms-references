@@ -2,11 +2,9 @@ from collections import defaultdict
 
 from django.core.exceptions import ImproperlyConfigured
 
-from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.app_base import CMSAppExtension
 from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
-
-from djangocms_alias.models import AliasPlugin
 
 
 class ReferencesCMSExtension(CMSAppExtension):
@@ -43,8 +41,3 @@ class ReferencesCMSExtension(CMSAppExtension):
             raise ImproperlyConfigured(
                 "cms_config.py must have reference_fields attribute"
             )
-
-
-class CoreCMSAppConfig(CMSAppConfig):
-    djangocms_references_enabled = True
-    reference_fields = {AliasPlugin.alias}

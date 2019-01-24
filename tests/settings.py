@@ -1,13 +1,19 @@
 HELPER_SETTINGS = {
     "INSTALLED_APPS": [
-        "django_extensions",
         "djangocms_references",
         "djangocms_versioning",
-        "djangocms_alias",
         "djangocms_references.test_utils.app_1",
+        "djangocms_references.test_utils.polls",
         # "djangocms_references.test_utils.app_2",
     ],
-    "MIGRATION_MODULES": {"djangocms_references": None},
+    "MIGRATION_MODULES": {
+        "auth": None,
+        "cms": None,
+        "menus": None,
+        "djangocms_references": None,
+        "djangocms_versioning": None,
+        "djangocms_references.test_utils.polls": None,
+    },
 }
 
 

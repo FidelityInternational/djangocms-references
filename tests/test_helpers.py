@@ -16,11 +16,7 @@ from djangocms_references.helpers import (
     get_reference_plugins,
     get_relation,
 )
-from djangocms_references.test_utils.app_1.models import (
-    Child,
-    Parent,
-    UnknownChild,
-)
+from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
 
 
 class GetRelationTestCase(TestCase):
