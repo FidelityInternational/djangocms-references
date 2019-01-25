@@ -1,5 +1,4 @@
 from collections import defaultdict
-from contextlib import suppress
 from functools import lru_cache, partial
 from itertools import groupby
 from operator import itemgetter
@@ -16,8 +15,10 @@ def get_versionable_for_content(content_model):
         from djangocms_versioning import versionables
     except ImportError:
         return
-    with suppress(KeyError):
+    try:
         return versionables.for_content(content_model)
+    except KeyError:
+        pass
 
 
 def get_relation(field_name, versionable):
