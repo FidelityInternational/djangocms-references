@@ -16,6 +16,7 @@ class ReferencesCMSExtension(CMSAppExtension):
         return defaultdict(lambda: defaultdict(set))
 
     def register_fields(self, fields):
+        # generate reference_models and reference_plugins dict object
         for field in fields:
             model = field.field.model
             related_model = field.field.related_model
@@ -29,6 +30,11 @@ class ReferencesCMSExtension(CMSAppExtension):
             store[related_model][model].add(field.field.name)
 
     def configure_app(self, cms_config):
+        """
+        Third party app can define set object as reference_fields (like Child.parent)
+        to define child parent relation of any field to model.
+        Based on definition register_fields method generate model and plugin dict
+        """
         if getattr(cms_config, "reference_fields", None) is not None:
             reference_fields = getattr(cms_config, "reference_fields")
             if isinstance(reference_fields, set):
