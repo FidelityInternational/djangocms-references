@@ -23,12 +23,16 @@ from djangocms_references.helpers import (
     get_relation,
     get_versionable_for_content,
 )
+from djangocms_references.test_utils.app_1.models import (
+    Child,
+    Parent,
+    UnknownChild,
+)
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
     PlaceholderFactory,
     PollFactory,
 )
-from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
 
 
 class GetVersionableTestCase(TestCase):
