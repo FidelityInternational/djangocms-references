@@ -64,6 +64,46 @@ class ReferencesViewTestCases(CMSTestCase):
             response = self.client.get(self.view_url)
             self.assertEqual(response.status_code, 200)
 
+    def test_view_invalid_content_type(self):
+        request = self.factory.get(self.view_url)
+        request.user = self.superuser
+        view = ReferencesView()
+        view.request = request
+        view.kwargs = {"content_type_id": 0, "object_id": 1}
+        response = view.get_context_data()
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_view_invalid_content_type_type(self):
+        request = self.factory.get(self.view_url)
+        request.user = self.superuser
+        view = ReferencesView()
+        view.request = request
+        view.kwargs = {"content_type_id": "foo", "object_id": 1}
+        response = view.get_context_data()
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_view_invalid_object(self):
+        request = self.factory.get(self.view_url)
+        request.user = self.superuser
+        view = ReferencesView()
+        view.request = request
+        view.kwargs = {"content_type_id": self.content.id, "object_id": 0}
+        response = view.get_context_data()
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_view_invalid_object_id_type(self):
+        request = self.factory.get(self.view_url)
+        request.user = self.superuser
+        view = ReferencesView()
+        view.request = request
+        view.kwargs = {"content_type_id": self.content.id, "object_id": "foo"}
+        response = view.get_context_data()
+
+        self.assertEqual(response.status_code, 400)
+
     def test_view_response_should_contain_querysets(self):
         request = self.factory.get(self.view_url)
         request.user = self.superuser
@@ -106,4 +146,3 @@ class ReferencesViewTestCases(CMSTestCase):
 
         # poll_content_4 shouldn't be in queryset
         self.assertNotIn(poll_content_4, response["querysets"][0])
-

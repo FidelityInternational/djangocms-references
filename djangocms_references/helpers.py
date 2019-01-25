@@ -67,7 +67,9 @@ def get_filters(content, relations):
 def _get_reference_objects(content, models_func):
     for reference in models_func(content.__class__):
         model, relations = reference
-        yield model.objects.filter(get_filters(content, relations))
+        qs = model.objects.filter(get_filters(content, relations))
+        if qs.exists():
+            yield qs
 
 
 def get_reference_objects(content):

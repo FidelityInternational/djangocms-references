@@ -17,7 +17,9 @@ class CMSConfigTestCase(TestCase):
         """CMS config with missing reference_model attributes"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
-            djangocms_references_enabled=True, app_config=Mock(label="blah_cms_config")
+            spec=[],
+            djangocms_references_enabled=True,
+            app_config=Mock(label="blah_cms_config"),
         )
 
         with self.assertRaises(ImproperlyConfigured):

@@ -12,10 +12,11 @@ class ReferencesView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        content_type = ContentType.objects.get_for_id(
-            int(self.kwargs.get("content_type_id"))
-        )
-        if not content_type:
+        try:
+            content_type = ContentType.objects.get_for_id(
+                int(self.kwargs.get("content_type_id"))
+            )
+        except (ContentType.DoesNotExist, ValueError):
             return HttpResponseBadRequest()
 
         model = content_type.model_class()
@@ -24,7 +25,7 @@ class ReferencesView(TemplateView):
             obj = content_type.get_object_for_this_type(
                 pk=int(self.kwargs["object_id"])
             )
-        except (model.DoesNotExist, TypeError):
+        except (model.DoesNotExist, ValueError):
             return HttpResponseBadRequest()
 
         draft_and_published = self.request.GET.get("state") == "draft_and_published"

@@ -2,21 +2,39 @@ from unittest import skipIf
 from unittest.mock import Mock, patch
 
 from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.test import TestCase
 
+from cms.api import add_plugin
+
 from djangocms_references import helpers
-from djangocms_references.compat import DJANGO_GTE_21
+from djangocms_references.compat import DJANGO_GTE_21, VERSIONING_INSTALLED
 from djangocms_references.helpers import (
     _get_reference_models,
+    combine_querysets_of_same_models,
+    filter_only_draft_and_published,
     get_all_reference_objects,
     get_extension,
     get_filters,
     get_reference_models,
+    get_reference_objects_from_plugins,
     get_reference_plugins,
     get_relation,
+    get_versionable_for_content,
+)
+from djangocms_references.test_utils.factories import (
+    PageContentFactory,
+    PlaceholderFactory,
+    PollFactory,
 )
 from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
+
+
+class GetVersionableTestCase(TestCase):
+    def test_get_versionable_for_content_no_versioning(self):
+        with patch.dict("sys.modules", {"djangocms_versioning": None}):
+            self.assertIsNone(get_versionable_for_content("foo"))
 
 
 class GetRelationTestCase(TestCase):
@@ -64,16 +82,20 @@ class GetReferenceModelsTestCase(TestCase):
         extension = Mock()
         with patch.object(
             helpers, "get_extension", return_value=extension
-        ), patch.object(helpers, "_get_reference_models") as inner:
-            list(get_reference_models("foo"))
+        ), patch.object(
+            helpers, "_get_reference_models", return_value=["1", "2"]
+        ) as inner:
+            self.assertEqual(list(get_reference_models("foo")), ["1", "2"])
             inner.assert_called_once_with("foo", extension.reference_models)
 
     def test_get_reference_plugins(self):
         extension = Mock()
         with patch.object(
             helpers, "get_extension", return_value=extension
-        ), patch.object(helpers, "_get_reference_models") as inner:
-            list(get_reference_plugins("foo"))
+        ), patch.object(
+            helpers, "_get_reference_models", return_value=["1", "2"]
+        ) as inner:
+            self.assertEqual(list(get_reference_plugins("foo")), ["1", "2"])
             inner.assert_called_once_with("foo", extension.reference_plugins)
 
     def test__get_reference_models(self):
@@ -138,3 +160,71 @@ class GetReferenceObjectsTestCase(TestCase):
         self.assertIn(child1, querysets[0])
         self.assertIn(child2, querysets[0])
         self.assertNotIn(child3, querysets[0])
+
+    def test_get_reference_objects_from_plugins(self):
+        page_content = PageContentFactory(title="test", language="en")
+        placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content),
+            object_id=page_content.id,
+        )
+        poll = PollFactory()
+        add_plugin(placeholder, "PollPlugin", "en", poll=poll, template=0)
+
+        querysets = list(get_reference_objects_from_plugins(poll))
+        self.assertEqual(len(querysets), 1)
+        self.assertIn(page_content, querysets[0])
+
+
+class FilterOnlyDraftAndPublishedTestCase(TestCase):
+    @skipIf(not VERSIONING_INSTALLED, "Versioning not installed")
+    def test_filter_only_draft_and_published_is_versioned(self):
+        from djangocms_versioning.constants import DRAFT, PUBLISHED
+
+        expected = Mock()
+        mock = Mock(filter=Mock(return_value=expected))
+        with patch.object(helpers, "get_versionable_for_content", return_value=True):
+            result = filter_only_draft_and_published(mock)
+            mock.filter.assert_called_once_with(versions__state__in=(DRAFT, PUBLISHED))
+            self.assertEqual(expected, result)
+
+    def test_filter_only_draft_and_published_is_not_versioned(self):
+        mock = Mock()
+        with patch.object(helpers, "get_versionable_for_content", return_value=False):
+            result = filter_only_draft_and_published(mock)
+            mock.filter.assert_not_called()
+            self.assertEqual(mock, result)
+
+
+class CombineQuerysetsTestCase(TestCase):
+    def test_combine_querysets_of_same_models(self):
+        class MockQueryset:
+            def __init__(self, model, extra_state=None):
+                self.model = model
+                self._state = []
+                if extra_state:
+                    self._state.extend(extra_state)
+
+            def __repr__(self):
+                return "<MockQueryset {model} ({state})>".format(
+                    model=self.model, state=self._state
+                )
+
+            def __or__(self, other):
+                if self.model != other.model:
+                    raise ValueError("Cannot combine querysets of different models")
+                return MockQueryset(self.model, self._state + [other] + other._state)
+
+            def __eq__(self, other):
+                return self.model == other.model and self._state == other._state
+
+        foo_qs1 = MockQueryset("Foo")
+        foo_qs2 = MockQueryset("Foo")
+        bar_qs1 = MockQueryset("Bar")
+        bar_qs2 = MockQueryset("Bar")
+        baz_qs1 = MockQueryset("Baz")
+        result = list(
+            combine_querysets_of_same_models(
+                [foo_qs1], [foo_qs2, bar_qs1], [baz_qs1, bar_qs2]
+            )
+        )
+        self.assertEqual(result, [foo_qs1 | foo_qs2, bar_qs1 | bar_qs2, baz_qs1])
