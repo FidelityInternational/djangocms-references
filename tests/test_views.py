@@ -107,33 +107,3 @@ class ReferencesViewTestCases(CMSTestCase):
         # poll_content_4 shouldn't be in queryset
         self.assertNotIn(poll_content_4, response["querysets"][0])
 
-    def test_view_poll_plugin_attached_to_page_should_return_related_page(self):
-        request = self.factory.get(self.view_url)
-        request.GET = {"state": "draft_and_published"}
-        request.user = self.superuser
-
-        pagecontent = PageContentFactory(title="test", language=self.language)
-        page = pagecontent.page
-        placeholder = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page), object_id=page.id
-        )
-
-        poll = PollFactory()
-        # Attach poll plugin to page
-        poll_plugin_1 = add_plugin(
-            placeholder, "PollPlugin", "en", poll=poll, template=0
-        )
-
-        view = ReferencesView()
-        view.request = request
-        view.kwargs = {
-            "content_type_id": ContentType.objects.get_for_model(poll_plugin_1).pk,
-            "object_id": poll_plugin_1.id,
-        }
-        response = view.get_context_data()
-
-        self.assertIn("querysets", response)
-
-        # Queryset should contain page
-        self.assertEqual(response["querysets"][0].count(), 1)
-        self.assertIn(page, response["querysets"][0])
