@@ -1,0 +1,6 @@
+{
+    "package-name": "djangocms-references",
+    "installed-apps": [
+        "djangocms_references"
+    ]
+}
