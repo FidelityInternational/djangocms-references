@@ -3,7 +3,7 @@ from django.http.response import HttpResponseBadRequest
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 
-from .helpers import get_all_reference_objects
+from .helpers import get_additional_attrs, get_all_reference_objects
 
 
 class ReferencesView(TemplateView):
@@ -11,6 +11,8 @@ class ReferencesView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        additional_attrs = get_additional_attrs()
 
         try:
             content_type = ContentType.objects.get_for_id(
@@ -30,7 +32,9 @@ class ReferencesView(TemplateView):
 
         draft_and_published = self.request.GET.get("state") == "draft_and_published"
 
-        querysets = get_all_reference_objects(obj, draft_and_published)
+        querysets = get_all_reference_objects(
+            obj, draft_and_published=draft_and_published
+        )
 
         context.update(
             {
@@ -38,6 +42,7 @@ class ReferencesView(TemplateView):
                 "opts": model._meta,
                 "querysets": querysets,
                 "draft_and_published": draft_and_published,
+                "additional_attrs": [attr.verbose_name for attr in additional_attrs],
             }
         )
         return context

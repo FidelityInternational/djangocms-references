@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from functools import lru_cache, partial
 from itertools import groupby
 from operator import itemgetter
@@ -32,6 +32,10 @@ def get_relation(field_name, versionable):
 def get_extension():
     app = apps.get_app_config("djangocms_references")
     return app.cms_extension
+
+
+def get_additional_attrs():
+    return get_extension().additional_attrs
 
 
 def _get_reference_models(content_model, models):
@@ -140,6 +144,24 @@ def combine_querysets_of_same_models(*querysets_list):
         yield combined
 
 
+def gather_additional_attrs(obj, additional_attrs):
+    return [attr.getter(obj) for attr in additional_attrs]
+
+
+def apply_additional_modifiers(queryset):
+    extension = get_extension()
+    for modifier in extension.additional_attr_modifiers:
+        queryset = modifier(queryset)
+    return queryset
+
+
+def with_additional_attrs(queryset):
+    extension = get_extension()
+    for obj in apply_additional_modifiers(queryset):
+        obj.additional_attrs = gather_additional_attrs(obj, extension.additional_attrs)
+        yield obj
+
+
 def get_all_reference_objects(content, draft_and_published=False):
     postprocess = None
     if draft_and_published:
@@ -149,4 +171,4 @@ def get_all_reference_objects(content, draft_and_published=False):
     )
     if postprocess:
         querysets = postprocess(querysets)
-    return list(querysets)
+    return list(with_additional_attrs(qs) for qs in querysets)
