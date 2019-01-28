@@ -1,5 +1,4 @@
-from collections import defaultdict, OrderedDict
-from operator import attrgetter
+from collections import defaultdict
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
@@ -8,15 +7,16 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
 
-from .datastructures import AdditionalAttr
+from .datastructures import ExtraColumn
+from .helpers import get_versionable_for_content
 
 
 class ReferencesCMSExtension(CMSAppExtension):
     def __init__(self):
         self.reference_models = self._make_default()
         self.reference_plugins = self._make_default()
-        self.additional_attrs = []
-        self.additional_attr_modifiers = []
+        self.extra_columns = []
+        self.extra_column_modifiers = []
 
     def _make_default(self):
         return defaultdict(lambda: defaultdict(set))
@@ -35,13 +35,13 @@ class ReferencesCMSExtension(CMSAppExtension):
                 store = self.reference_models
             store[related_model][model].add(field.field.name)
 
-    def configure_additional_attrs(self, attr_list):
+    def configure_extra_columns(self, attr_list):
         for attrs, modifier in attr_list:
-            self.additional_attr_modifiers.append(modifier)
+            self.extra_column_modifiers.append(modifier)
             for attr in attrs:
-                _attr = AdditionalAttr(*attr)
+                _attr = ExtraColumn(*attr)
                 # FIXME error out if already in the list (?)
-                self.additional_attrs.append(_attr)
+                self.extra_columns.append(_attr)
 
     def configure_app(self, cms_config):
         """
@@ -57,31 +57,32 @@ class ReferencesCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "Reference model configuration must be a set instance"
                 )
-        else:
-            raise ImproperlyConfigured(
-                "cms_config.py must have reference_fields attribute"
-            )
-        self.configure_additional_attrs(
-            getattr(cms_config, "reference_additional_attrs", [])
+        self.configure_extra_columns(
+            getattr(cms_config, "reference_extra_columns", [])
         )
 
 
 def version_queryset_modifier(queryset):
-    return queryset.prefetch_related("versions", "versions__created_by")
+    if get_versionable_for_content(queryset.model):
+        queryset = queryset.prefetch_related("versions", "versions__created_by")
+    return queryset
 
 
-from djangocms_alias.models import *
+def version_attr(func):
+    def inner(obj):
+        if get_versionable_for_content(obj):
+            return func(obj.versions.all()[0])
+    return inner
 
 
 class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_references_enabled = True
-    reference_fields = {AliasPlugin.alias}
-    reference_additional_attrs = [
+    reference_extra_columns = [
         (
             (
-                (lambda o: o.versions.all()[0].get_state_display(), _("Status")),
-                (lambda o: o.versions.all()[0].created_by, _("Author")),
-                (lambda o: o.versions.all()[0].modified, _("Modified date")),
+                (version_attr(lambda v: v.get_state_display()), _("Status")),
+                (version_attr(lambda v: v.created_by), _("Author")),
+                (version_attr(lambda v: v.modified), _("Modified date")),
             ),
             version_queryset_modifier,
         )

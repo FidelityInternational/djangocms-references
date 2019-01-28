@@ -1,3 +1,4 @@
 from collections import namedtuple
 
-AdditionalAttr = namedtuple("AdditionalAttr", ("getter", "verbose_name"))
+
+ExtraColumn = namedtuple("ExtraColumn", ("getter", "verbose_name"))

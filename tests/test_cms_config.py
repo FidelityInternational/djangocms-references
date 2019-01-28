@@ -13,22 +13,12 @@ from djangocms_references.test_utils.polls.models import Poll
 
 
 class CMSConfigTestCase(TestCase):
-    def test_missing_cms_config(self):
-        """CMS config with missing reference_model attributes"""
-        extensions = ReferencesCMSExtension()
-        cms_config = Mock(
-            spec=[],
-            djangocms_references_enabled=True,
-            app_config=Mock(label="blah_cms_config"),
-        )
-
-        with self.assertRaises(ImproperlyConfigured):
-            extensions.configure_app(cms_config)
 
     def test_int_reference_fields_cms_config_parameter(self):
         """CMS config with int as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
+            spec=[],
             djangocms_references_enabled=True,
             reference_fields=23234,
             app_config=Mock(label="blah_cms_config"),
@@ -41,6 +31,7 @@ class CMSConfigTestCase(TestCase):
         """CMS config with string as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
+            spec=[],
             djangocms_references_enabled=True,
             reference_fields="dummy",
             app_config=Mock(label="blah_cms_config"),
@@ -53,6 +44,7 @@ class CMSConfigTestCase(TestCase):
         """CMS config with list as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
+            spec=[],
             djangocms_references_enabled=True,
             reference_fields=[1, 2],
             app_config=Mock(label="blah_cms_config"),
@@ -65,6 +57,7 @@ class CMSConfigTestCase(TestCase):
         """CMS config with valid configuration"""
         extensions = ReferencesCMSExtension()
         cms_config = Mock(
+            spec=[],
             djangocms_references_enabled=True,
             reference_fields={Child.parent},
             app_config=Mock(label="blah_cms_config"),

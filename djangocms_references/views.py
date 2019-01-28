@@ -3,7 +3,7 @@ from django.http.response import HttpResponseBadRequest
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 
-from .helpers import get_additional_attrs, get_all_reference_objects
+from .helpers import get_extra_columns, get_all_reference_objects
 
 
 class ReferencesView(TemplateView):
@@ -12,7 +12,7 @@ class ReferencesView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        additional_attrs = get_additional_attrs()
+        extra_columns = get_extra_columns()
 
         try:
             content_type = ContentType.objects.get_for_id(
@@ -42,7 +42,7 @@ class ReferencesView(TemplateView):
                 "opts": model._meta,
                 "querysets": querysets,
                 "draft_and_published": draft_and_published,
-                "additional_attrs": [attr.verbose_name for attr in additional_attrs],
+                "extra_columns": [column.verbose_name for column in extra_columns],
             }
         )
         return context
