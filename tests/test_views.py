@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
@@ -9,6 +11,7 @@ from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
 import djangocms_references.urls
+from djangocms_references.datastructures import ExtraColumn
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
@@ -113,7 +116,10 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertNotIn(poll_content_4, response.context["querysets"][0])
 
     def test_view_poll_plugin_attached_to_page_should_return_related_page(self):
-        page_content = PageContentFactory(title="test", language=self.language)
+        version = PageVersionFactory(
+            content__title="test", content__language=self.language
+        )
+        page_content = version.content
         placeholder = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_content),
             object_id=page_content.id,
@@ -169,3 +175,13 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertNotIn(archived.content, response.context["querysets"][0])
         self.assertIn(version2.content, response.context["querysets"][0])
         self.assertIn(version3.content, response.context["querysets"][0])
+
+    def test_extra_columns(self):
+        extra_column = ExtraColumn(lambda o: "{} test".format(o), "Test column")
+
+        with self.login_user_context(self.superuser), patch(
+            "djangocms_references.views.get_extra_columns", return_value=[extra_column]
+        ) as get_extra_columns:
+            response = self.client.get(self.view_url)
+
+        self.assertEqual(response.context["extra_columns"], [extra_column])

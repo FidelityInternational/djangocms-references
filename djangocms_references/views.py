@@ -42,7 +42,7 @@ class ReferencesView(TemplateView):
                 "opts": model._meta,
                 "querysets": querysets,
                 "draft_and_published": draft_and_published,
-                "extra_columns": [column.verbose_name for column in extra_columns],
+                "extra_columns": extra_columns,
             }
         )
         return context
