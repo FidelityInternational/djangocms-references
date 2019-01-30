@@ -35,7 +35,7 @@ def get_extension():
 
 
 def get_extra_columns():
-    return get_extension().extra_columns
+    return get_extension().list_extra_columns
 
 
 def _get_reference_models(content_model, models):
@@ -146,7 +146,7 @@ def combine_querysets_of_same_models(*querysets_list):
 
 def apply_additional_modifiers(queryset):
     extension = get_extension()
-    for modifier in extension.extra_column_modifiers:
+    for modifier in extension.list_queryset_modifiers:
         queryset = modifier(queryset)
     return queryset
 

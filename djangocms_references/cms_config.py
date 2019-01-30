@@ -15,8 +15,8 @@ class ReferencesCMSExtension(CMSAppExtension):
     def __init__(self):
         self.reference_models = self._make_default()
         self.reference_plugins = self._make_default()
-        self.extra_columns = []
-        self.extra_column_modifiers = []
+        self.list_extra_columns = []
+        self.list_queryset_modifiers = []
 
     def _make_default(self):
         return defaultdict(lambda: defaultdict(set))
@@ -35,13 +35,31 @@ class ReferencesCMSExtension(CMSAppExtension):
                 store = self.reference_models
             store[related_model][model].add(field.field.name)
 
-    def configure_extra_columns(self, attr_list):
-        for attrs, modifier in attr_list:
-            self.extra_column_modifiers.append(modifier)
-            for attr in attrs:
-                _attr = ExtraColumn(*attr)
-                # FIXME error out if already in the list (?)
-                self.extra_columns.append(_attr)
+    def configure_list_extra_columns(self, extra_columns):
+        """Registers additional columns to be displayed in the reference
+        table.
+
+        Expects `reference_list_extra_columns` attribute to be set,
+        which is a list of (func, label) tuple.
+
+        Function should expect a single argument, a content object.
+        Its return value will be displayed in that column's/object's cell.
+
+        Example:
+        reference_list_extra_columns = [
+            (lambda obj: str(obj), 'Column header'),
+            (lambda obj: id(obj), 'Another column header'),
+        ]
+        """
+        for column in extra_columns:
+            column_ = ExtraColumn(*column)
+            self.list_extra_columns.append(column_)
+
+    def configure_list_queryset_modifiers(self, modifiers):
+        """Registers a list of functions that are applied to reference
+        list querysets.
+        """
+        self.list_queryset_modifiers.extend(modifiers)
 
     def configure_app(self, cms_config):
         """
@@ -57,18 +75,28 @@ class ReferencesCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "Reference model configuration must be a set instance"
                 )
-        self.configure_extra_columns(
-            getattr(cms_config, "reference_extra_columns", [])
+        self.configure_list_extra_columns(
+            getattr(cms_config, "reference_list_extra_columns", [])
+        )
+        self.configure_list_queryset_modifiers(
+            getattr(cms_config, "reference_list_queryset_modifiers", [])
         )
 
 
 def version_queryset_modifier(queryset):
+    """Applies prefetch_related on version relation
+    if provided queryset's model is versionable.
+    """
     if get_versionable_for_content(queryset.model):
         queryset = queryset.prefetch_related("versions", "versions__created_by")
     return queryset
 
 
 def version_attr(func):
+    """A decorator that turns a function taking a content object into
+    a function taking a Version.
+
+    Returns None when content object is not versioned."""
     def inner(obj):
         if get_versionable_for_content(obj):
             return func(obj.versions.all()[0])
@@ -77,13 +105,9 @@ def version_attr(func):
 
 class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_references_enabled = True
-    reference_extra_columns = [
-        (
-            (
-                (version_attr(lambda v: v.get_state_display()), _("Status")),
-                (version_attr(lambda v: v.created_by), _("Author")),
-                (version_attr(lambda v: v.modified), _("Modified date")),
-            ),
-            version_queryset_modifier,
-        )
+    reference_list_extra_columns = [
+        (version_attr(lambda v: v.get_state_display()), _("Status")),
+        (version_attr(lambda v: v.created_by), _("Author")),
+        (version_attr(lambda v: v.modified), _("Modified date")),
     ]
+    reference_list_queryset_modifiers = [version_queryset_modifier]
