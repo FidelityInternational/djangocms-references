@@ -18,7 +18,7 @@ class ReferencesView(TemplateView):
             content_type = ContentType.objects.get_for_id(
                 int(self.kwargs.get("content_type_id"))
             )
-        except (ContentType.DoesNotExist, ValueError):
+        except ContentType.DoesNotExist:
             raise Http404
 
         model = content_type.model_class()
@@ -27,7 +27,7 @@ class ReferencesView(TemplateView):
             obj = content_type.get_object_for_this_type(
                 pk=int(self.kwargs["object_id"])
             )
-        except (model.DoesNotExist, ValueError):
+        except model.DoesNotExist:
             raise Http404
 
         draft_and_published = self.request.GET.get("state") == "draft_and_published"
