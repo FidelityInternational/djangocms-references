@@ -8,7 +8,7 @@ from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
 
 from .datastructures import ExtraColumn
-from .helpers import get_versionable_for_content
+from .helpers import get_versionable_for_content, version_attr
 
 
 class ReferencesCMSExtension(CMSAppExtension):
@@ -90,19 +90,6 @@ def version_queryset_modifier(queryset):
     if get_versionable_for_content(queryset.model):
         queryset = queryset.prefetch_related("versions", "versions__created_by")
     return queryset
-
-
-def version_attr(func):
-    """A decorator that turns a function taking a content object into
-    a function taking a Version.
-
-    Returns None when content object is not versioned."""
-
-    def inner(obj):
-        if get_versionable_for_content(obj):
-            return func(obj.versions.all()[0])
-
-    return inner
 
 
 class ReferencesCMSAppConfig(CMSAppConfig):

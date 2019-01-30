@@ -161,3 +161,16 @@ def get_all_reference_objects(content, draft_and_published=False):
     if postprocess:
         querysets = postprocess(querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
+
+
+def version_attr(func):
+    """A decorator that turns a function taking a content object into
+    a function taking a Version.
+
+    Returns None when content object is not versioned."""
+
+    def inner(obj):
+        if get_versionable_for_content(obj):
+            return func(obj.versions.all()[0])
+
+    return inner
