@@ -9,11 +9,7 @@ from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll
 
 
-# from djangocms_references.test_utils.app_2.models import TestModel3, TestModel4
-
-
 class CMSConfigTestCase(TestCase):
-
     def test_int_reference_fields_cms_config_parameter(self):
         """CMS config with int as reference_fields as it expect dict object"""
         extensions = ReferencesCMSExtension()

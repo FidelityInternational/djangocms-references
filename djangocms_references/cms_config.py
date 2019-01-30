@@ -97,9 +97,11 @@ def version_attr(func):
     a function taking a Version.
 
     Returns None when content object is not versioned."""
+
     def inner(obj):
         if get_versionable_for_content(obj):
             return func(obj.versions.all()[0])
+
     return inner
 
 

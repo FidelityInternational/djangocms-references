@@ -1,9 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
-from django.http.response import HttpResponseBadRequest
+from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 
-from .helpers import get_extra_columns, get_all_reference_objects
+from .helpers import get_all_reference_objects, get_extra_columns
 
 
 class ReferencesView(TemplateView):
@@ -19,7 +19,7 @@ class ReferencesView(TemplateView):
                 int(self.kwargs.get("content_type_id"))
             )
         except (ContentType.DoesNotExist, ValueError):
-            return HttpResponseBadRequest()
+            raise Http404
 
         model = content_type.model_class()
 
@@ -28,7 +28,7 @@ class ReferencesView(TemplateView):
                 pk=int(self.kwargs["object_id"])
             )
         except (model.DoesNotExist, ValueError):
-            return HttpResponseBadRequest()
+            raise Http404
 
         draft_and_published = self.request.GET.get("state") == "draft_and_published"
 
