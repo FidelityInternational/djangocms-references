@@ -157,7 +157,8 @@ class ReferencesViewTestCases(CMSTestCase):
                 self.get_view_url(
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
-                ) + '?state=draft_and_published'
+                )
+                + "?state=draft_and_published"
             )
 
         self.assertEqual(response.status_code, 200)

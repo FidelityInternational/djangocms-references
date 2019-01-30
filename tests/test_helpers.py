@@ -243,7 +243,10 @@ class VersionAttrTestCase(TestCase):
         func = Mock()
         decorated = version_attr(func)
 
-        with patch("djangocms_references.helpers.get_versionable_for_content", return_value=True) as mock:
+        with patch(
+            "djangocms_references.helpers.get_versionable_for_content",
+            return_value=True,
+        ) as mock:
             result = decorated(version.content)
             mock.assert_called_once_with(version.content)
             func.assert_called_once_with(version)
@@ -255,7 +258,10 @@ class VersionAttrTestCase(TestCase):
         func = Mock()
         decorated = version_attr(func)
 
-        with patch("djangocms_references.helpers.get_versionable_for_content", return_value=False) as mock:
+        with patch(
+            "djangocms_references.helpers.get_versionable_for_content",
+            return_value=False,
+        ) as mock:
             result = decorated(content)
             mock.assert_called_once_with(content)
             func.assert_not_called()

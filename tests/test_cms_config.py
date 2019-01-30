@@ -1,10 +1,15 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
-from djangocms_references.cms_config import ReferencesCMSExtension
+from cms.models import PageContent
+
+from djangocms_references.cms_config import (
+    ReferencesCMSExtension,
+    version_queryset_modifier,
+)
 from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll
 
@@ -68,6 +73,31 @@ class CMSConfigTestCase(TestCase):
         self.assertTrue(Parent in reference_models.keys())
         self.assertTrue(Child in reference_models[Parent])
         self.assertTrue("parent" in reference_models[Parent][Child])
+
+
+class ModifierTestCase(TestCase):
+    def test_versioned(self):
+        queryset = PageContent.objects.all()
+
+        with patch(
+            "djangocms_references.cms_config.get_versionable_for_content",
+            return_value=True,
+        ) as mock:
+            result = version_queryset_modifier(queryset)
+        mock.assert_called_once_with(queryset.model)
+        self.assertNotEqual(result, queryset)
+        self.assertIn("versions", result._prefetch_related_lookups)
+
+    def test_not_versioned(self):
+        queryset = PageContent.objects.all()
+
+        with patch(
+            "djangocms_references.cms_config.get_versionable_for_content",
+            return_value=False,
+        ) as mock:
+            result = version_queryset_modifier(queryset)
+        mock.assert_called_once_with(queryset.model)
+        self.assertEqual(result, queryset)
 
 
 class IntegrationTestCase(TestCase):
