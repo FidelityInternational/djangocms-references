@@ -28,3 +28,8 @@ def object_model(obj):
             "object_model tag requires a model object as argument"
         )
     return obj._meta.model_name
+
+
+@register.simple_tag()
+def extra_column(obj, column):
+    return column.getter(obj)

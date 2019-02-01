@@ -22,6 +22,7 @@ from djangocms_references.helpers import (
     get_reference_plugins,
     get_relation,
     get_versionable_for_content,
+    version_attr,
 )
 from djangocms_references.test_utils.app_1.models import (
     Child,
@@ -30,6 +31,7 @@ from djangocms_references.test_utils.app_1.models import (
 )
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
+    PageVersionFactory,
     PlaceholderFactory,
     PollFactory,
 )
@@ -232,3 +234,35 @@ class CombineQuerysetsTestCase(TestCase):
             )
         )
         self.assertEqual(result, [foo_qs1 | foo_qs2, bar_qs1 | bar_qs2, baz_qs1])
+
+
+class VersionAttrTestCase(TestCase):
+    def test_versioned(self):
+        version = PageVersionFactory()
+
+        func = Mock()
+        decorated = version_attr(func)
+
+        with patch(
+            "djangocms_references.helpers.get_versionable_for_content",
+            return_value=True,
+        ) as mock:
+            result = decorated(version.content)
+            mock.assert_called_once_with(version.content)
+            func.assert_called_once_with(version)
+            self.assertEqual(result, func.return_value)
+
+    def test_not_versioned(self):
+        content = PageContentFactory()
+
+        func = Mock()
+        decorated = version_attr(func)
+
+        with patch(
+            "djangocms_references.helpers.get_versionable_for_content",
+            return_value=False,
+        ) as mock:
+            result = decorated(content)
+            mock.assert_called_once_with(content)
+            func.assert_not_called()
+            self.assertIsNone(result)

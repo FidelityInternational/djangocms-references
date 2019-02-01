@@ -10,13 +10,13 @@ from django.db.models import F, Q
 from cms.models import CMSPlugin
 
 
-def get_versionable_for_content(content_model):
+def get_versionable_for_content(content):
     try:
         from djangocms_versioning import versionables
     except ImportError:
         return
     try:
-        return versionables.for_content(content_model)
+        return versionables.for_content(content)
     except KeyError:
         pass
 
@@ -32,6 +32,10 @@ def get_relation(field_name, versionable):
 def get_extension():
     app = apps.get_app_config("djangocms_references")
     return app.cms_extension
+
+
+def get_extra_columns():
+    return get_extension().list_extra_columns
 
 
 def _get_reference_models(content_model, models):
@@ -140,6 +144,13 @@ def combine_querysets_of_same_models(*querysets_list):
         yield combined
 
 
+def apply_additional_modifiers(queryset):
+    extension = get_extension()
+    for modifier in extension.list_queryset_modifiers:
+        queryset = modifier(queryset)
+    return queryset
+
+
 def get_all_reference_objects(content, draft_and_published=False):
     postprocess = None
     if draft_and_published:
@@ -149,4 +160,17 @@ def get_all_reference_objects(content, draft_and_published=False):
     )
     if postprocess:
         querysets = postprocess(querysets)
-    return list(querysets)
+    return list(apply_additional_modifiers(qs) for qs in querysets)
+
+
+def version_attr(func):
+    """A decorator that turns a function taking a content object into
+    a function taking a Version.
+
+    Returns None when content object is not versioned."""
+
+    def inner(obj):
+        if get_versionable_for_content(obj):
+            return func(obj.versions.all()[0])
+
+    return inner

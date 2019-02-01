@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from cms.toolbar.utils import get_object_preview_url
 
+from djangocms_references.datastructures import ExtraColumn
 from djangocms_references.test_utils.factories import PageContentFactory
 
 
@@ -59,3 +60,12 @@ class ReferencesTemplateTagTest(TestCase):
             "{% load djangocms_references_tags %}" "{% object_model 1 %}"
         )
         self.assertRaises(TemplateSyntaxError, template_to_render.render, context)
+
+    def test_extra_column(self):
+        obj = PageContentFactory()
+        context = Context({"obj": obj, "column": ExtraColumn(lambda o: id(o), "Foo")})
+        template_to_render = Template(
+            "{% load djangocms_references_tags %}" "{% extra_column obj column %}"
+        )
+        rendered_template = template_to_render.render(context)
+        self.assertEqual(str(id(obj)), rendered_template)
