@@ -60,7 +60,7 @@ class CMSConfigTestCase(TestCase):
         cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
-            reference_fields={Child.parent},
+            reference_fields=[(Child, "parent")],
             app_config=Mock(label="blah_cms_config"),
         )
 
