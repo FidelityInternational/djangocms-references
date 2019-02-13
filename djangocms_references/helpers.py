@@ -57,7 +57,20 @@ def _get_reference_models(content_model, models):
     provided content object later on.
 
     :param content_model: A content model
-    :param models:
+    :param models: Related model registry
+
+    Example:
+    models = {
+        Alias: {
+            AliasPlugin: ["alias"],
+        },
+    }
+    content_model = AliasContent
+
+    In this case, since AliasContent is versioned, target_model becomes
+    Alias This generator will loop through models[Alias] dictionary and
+    generate (model, lookups) pairs, in this case:
+    [(AliasPlugin, 'alias__aliascontent')]
     """
     versionable = get_versionable_for_content(content_model)
     if versionable:
