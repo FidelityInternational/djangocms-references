@@ -11,3 +11,4 @@ local.sqlite
 .coverage
 htmlcov/
 .python-version
+docs/_build/
