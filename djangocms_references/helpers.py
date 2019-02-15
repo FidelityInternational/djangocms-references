@@ -134,6 +134,13 @@ def get_reference_objects(content):
     """Yields querysets of models that are related to provided content object.
 
     :param content: Content object
+
+    Example:
+    poll = Poll.objects.get()
+    answer1 = Answer.objects.create(poll=poll)
+    answer2 = Answer.objects.create(poll=poll)
+    list(get_reference_objects(poll)) ->
+    [Answer.objects.filter(pk__in=[1, 2])]
     """
     yield from _get_reference_objects(content, get_reference_models)
 
@@ -158,9 +165,9 @@ def contenttype_values_queryset(queryset):
 
 
 def convert_plugin_querysets_to_sources(querysets):
-    """Convert provided plugin querysets to a form containing
+    """Convert provided plugin querysets to ValuesQuerySets containing
     only source object information and concatenate them into one
-    using UNION.
+    CMSPlugin queryset using UNION.
 
     :param querysets: List of plugin querysets
     """
@@ -249,6 +256,14 @@ def apply_additional_modifiers(queryset):
 
 
 def get_all_reference_objects(content, draft_and_published=False):
+    """Retrieves related objects (directly related and through plugins),
+    combines the querysets of the same models and applies selected postprocessing
+    functions (currently only filtering by version state).
+
+    :param content: Content object
+    :param draft_and_published: Set to True if only draft or published
+                                objects should be returned
+    """
     postprocess = None
     if draft_and_published:
         postprocess = partial(map, filter_only_draft_and_published)
