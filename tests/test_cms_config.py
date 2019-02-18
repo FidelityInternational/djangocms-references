@@ -57,7 +57,9 @@ class CMSConfigTestCase(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
-    def test_list_with_tuples_with_incorrect_number_of_elements_reference_fields_cms_config_parameter(self):
+    def test_list_with_tuples_with_incorrect_number_of_elements_reference_fields_cms_config_parameter(
+        self
+    ):
         """CMS config with list of tuples with three elements as it expects
         a list of tuples with two elements"""
         extensions = ReferencesCMSExtension()
