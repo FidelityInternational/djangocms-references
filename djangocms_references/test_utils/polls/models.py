@@ -13,6 +13,9 @@ class PollContent(models.Model):
     language = models.TextField()
     text = models.TextField()
 
+    def __str__(self):
+        return self.poll.name
+
 
 TEMPLATE_DEFAULT = "0"
 

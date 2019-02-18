@@ -1,0 +1,10 @@
+<div>
+    The following objects have relationships with the object you're about to unpublish:
+    <ul>
+    {% for queryset in references %}
+        {% for object in queryset %}
+        <li>{{ object }}</li>
+        {% endfor %}
+    {% endfor %}
+    </ul>
+</div>

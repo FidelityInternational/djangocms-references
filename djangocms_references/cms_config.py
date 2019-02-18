@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.core.exceptions import ImproperlyConfigured
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
@@ -8,7 +9,7 @@ from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
 
 from .datastructures import ExtraColumn
-from .helpers import get_versionable_for_content, version_attr
+from .helpers import get_versionable_for_content, version_attr, get_all_reference_objects
 
 
 class ReferencesCMSExtension(CMSAppExtension):
@@ -92,11 +93,24 @@ def version_queryset_modifier(queryset):
     return queryset
 
 
+def unpublish_dependencies(request, version, *args, **kwargs):
+    references = get_all_reference_objects(
+        version.content, draft_and_published=True)
+    return render_to_string(
+        'djangocms_references/unpublish_dependencies.html',
+        {'references': references}
+    )
+
+
 class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_references_enabled = True
+    djangocms_versioning_enabled = True  # TODO: Setting
     reference_list_extra_columns = [
         (version_attr(lambda v: v.get_state_display()), _("Status")),
         (version_attr(lambda v: v.created_by), _("Author")),
         (version_attr(lambda v: v.modified), _("Modified date")),
     ]
     reference_list_queryset_modifiers = [version_queryset_modifier]
+    versioning_add_to_confirmation_context = {
+        'unpublish': {'unpublish_dependencies': unpublish_dependencies}
+    }

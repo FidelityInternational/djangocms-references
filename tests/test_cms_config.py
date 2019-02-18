@@ -2,16 +2,18 @@ from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 
 from cms.models import PageContent
 
 from djangocms_references.cms_config import (
     ReferencesCMSExtension,
     version_queryset_modifier,
+    unpublish_dependencies,
 )
+from djangocms_references.test_utils import factories
 from djangocms_references.test_utils.app_1.models import Child, Parent
-from djangocms_references.test_utils.polls.models import Poll
+from djangocms_references.test_utils.polls.models import Poll, PollContent
 
 
 class CMSConfigTestCase(TestCase):
@@ -108,3 +110,43 @@ class IntegrationTestCase(TestCase):
         expected_models = [Parent, Poll]
 
         self.assertCountEqual(reference_models.keys(), expected_models)
+
+
+class UnpublishDependenciesSettingTestCase(TestCase):
+
+    @patch('djangocms_references.cms_config.get_all_reference_objects')
+    def test_unpublish_dependencies(self, mocked_references):
+        request = RequestFactory().get('/')
+        version = factories.PageVersionFactory()
+        polls = factories.PollContentFactory.create_batch(2)
+        parent = factories.ParentFactory()
+        mocked_references.return_value = [
+            PollContent.objects.all(),  # this has 2 polls
+            Child.objects.all(),  # this is an empty queryset
+            Parent.objects.all(),  # this has 1 parent
+        ]
+
+        html = unpublish_dependencies(request, version)
+
+        mocked_references.assert_called_once_with(
+            version.content, draft_and_published=True)
+        expected = """<div>
+    The following objects have relationships with the object you're about to unpublish:
+    <ul>
+    
+        
+        <li>{poll1}</li>
+        
+        <li>{poll2}</li>
+        
+    
+        
+    
+        
+        <li>{parent}</li>
+        
+    
+    </ul>
+</div>
+""".format(poll1=str(polls[0]), poll2=str(polls[1]), parent=str(parent))
+        self.assertEqual(html, expected)
