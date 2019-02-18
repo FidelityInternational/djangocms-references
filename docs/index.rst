@@ -13,9 +13,11 @@ Welcome to djangocms-references's documentation!
 Overview
 --------
 
-Django CMS References provides a way to introspect select relations between objects.
+Django CMS References provides a way to retrieve objects
+that are related to a selected object. It also includes a view
+to present that data to the end user.
 
-These relations must be explicitly configured.
+Relations used to retrieve these objects must be explicitly configured.
 
 Glossary
 --------
