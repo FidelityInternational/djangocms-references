@@ -56,7 +56,7 @@ Include `djangocms_references.urls` in your URLs:
 Configuration
 -------------
 
-References uses Django CMS app registration system.
+References uses the Django CMS app registration system.
 To configure your addon to use References, create a ``cms_config.py`` file
 in your addon's folder. The most simple configuration looks like this:
 
@@ -83,7 +83,7 @@ in your addon's folder. The most simple configuration looks like this:
             (Answer, 'poll'),
         ]
 
-In this example, ``Answer`` can contain a reference to ``Poll`` object.
+In this example, ``Answer`` can contain a reference to the ``Poll`` object.
 
 :py:class:`CMSAppConfig`
 

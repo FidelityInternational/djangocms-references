@@ -118,10 +118,12 @@ def get_filters(content, lookups):
 
 def _get_reference_objects(content, models_func):
     """Generic generator that yields querysets of models that are
-    potentially related to content object.
+    related to content object.
 
     :param content: Content object
-    :param models_func:
+    :param models_func: A function that takes a content model and returns
+                        a list of (model, lookups) tuples returned by
+                        _get_reference_models
     """
     for reference in models_func(content.__class__):
         model, lookups = reference
@@ -259,6 +261,9 @@ def get_all_reference_objects(content, draft_and_published=False):
     """Retrieves related objects (directly related and through plugins),
     combines the querysets of the same models and applies selected postprocessing
     functions (currently only filtering by version state).
+
+    The end result is a list of querysets of different models,
+    that are related to ``content``.
 
     :param content: Content object
     :param draft_and_published: Set to True if only draft or published
