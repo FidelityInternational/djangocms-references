@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
@@ -107,7 +108,9 @@ def unpublish_dependencies(request, version, *args, **kwargs):
 
 class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_references_enabled = True
-    djangocms_versioning_enabled = True  # TODO: Setting
+    djangocms_versioning_enabled = getattr(
+        settings, "DJANGOCMS_REFERENCES_VERSIONING_ENABLED", True
+    )
     reference_list_extra_columns = [
         (version_attr(lambda v: v.get_state_display()), _("Status")),
         (version_attr(lambda v: v.created_by), _("Author")),

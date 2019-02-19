@@ -1,16 +1,15 @@
+import importlib
 from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, override_settings
 
+from cms import app_registration
 from cms.models import PageContent
+from cms.utils.setup import configure_cms_apps
 
-from djangocms_references.cms_config import (
-    ReferencesCMSExtension,
-    version_queryset_modifier,
-    unpublish_dependencies,
-)
+from djangocms_references import cms_config
 from djangocms_references.test_utils import factories
 from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll, PollContent
@@ -19,8 +18,8 @@ from djangocms_references.test_utils.polls.models import Poll, PollContent
 class CMSConfigTestCase(TestCase):
     def test_int_reference_fields_cms_config_parameter(self):
         """CMS config with int as reference_fields as it expect dict object"""
-        extensions = ReferencesCMSExtension()
-        cms_config = Mock(
+        extensions = cms_config.ReferencesCMSExtension()
+        mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
             reference_fields=23234,
@@ -28,12 +27,12 @@ class CMSConfigTestCase(TestCase):
         )
 
         with self.assertRaises(ImproperlyConfigured):
-            extensions.configure_app(cms_config)
+            extensions.configure_app(mocked_cms_config)
 
     def test_string_reference_fields_cms_config_parameter(self):
         """CMS config with string as reference_fields as it expect dict object"""
-        extensions = ReferencesCMSExtension()
-        cms_config = Mock(
+        extensions = cms_config.ReferencesCMSExtension()
+        mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
             reference_fields="dummy",
@@ -41,12 +40,12 @@ class CMSConfigTestCase(TestCase):
         )
 
         with self.assertRaises(ImproperlyConfigured):
-            extensions.configure_app(cms_config)
+            extensions.configure_app(mocked_cms_config)
 
     def test_list_reference_fields_cms_config_parameter(self):
         """CMS config with list as reference_fields as it expect dict object"""
-        extensions = ReferencesCMSExtension()
-        cms_config = Mock(
+        extensions = cms_config.ReferencesCMSExtension()
+        mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
             reference_fields=[1, 2],
@@ -54,19 +53,19 @@ class CMSConfigTestCase(TestCase):
         )
 
         with self.assertRaises(ImproperlyConfigured):
-            extensions.configure_app(cms_config)
+            extensions.configure_app(mocked_cms_config)
 
     def test_valid_cms_config_parameter(self):
         """CMS config with valid configuration"""
-        extensions = ReferencesCMSExtension()
-        cms_config = Mock(
+        extensions = cms_config.ReferencesCMSExtension()
+        mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
             reference_fields={Child.parent},
             app_config=Mock(label="blah_cms_config"),
         )
 
-        extensions.configure_app(cms_config)
+        extensions.configure_app(mocked_cms_config)
         reference_models = apps.get_app_config(
             "djangocms_references"
         ).cms_extension.reference_models
@@ -85,7 +84,7 @@ class ModifierTestCase(TestCase):
             "djangocms_references.cms_config.get_versionable_for_content",
             return_value=True,
         ) as mock:
-            result = version_queryset_modifier(queryset)
+            result = cms_config.version_queryset_modifier(queryset)
         mock.assert_called_once_with(queryset.model)
         self.assertNotEqual(result, queryset)
         self.assertIn("versions", result._prefetch_related_lookups)
@@ -97,7 +96,7 @@ class ModifierTestCase(TestCase):
             "djangocms_references.cms_config.get_versionable_for_content",
             return_value=False,
         ) as mock:
-            result = version_queryset_modifier(queryset)
+            result = cms_config.version_queryset_modifier(queryset)
         mock.assert_called_once_with(queryset.model)
         self.assertEqual(result, queryset)
 
@@ -126,7 +125,7 @@ class UnpublishDependenciesSettingTestCase(TestCase):
             Parent.objects.all(),  # this has 1 parent
         ]
 
-        html = unpublish_dependencies(request, version)
+        html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
@@ -162,8 +161,66 @@ class UnpublishDependenciesSettingTestCase(TestCase):
             Parent.objects.all(),
         ]
 
-        html = unpublish_dependencies(request, version)
+        html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
         self.assertEqual(html, '')
+
+
+class VersioningSettingTestCase(TestCase):
+    def setUp(self):
+        self.versioning_app = apps.get_app_config('djangocms_versioning')
+        # Empty the context dict so it gets populated
+        # from scratch in tests (but save original values first)
+        self.add_to_context = self.versioning_app.cms_extension.add_to_context
+        self.versioning_app.cms_extension.add_to_context = {}
+
+    def tearDown(self):
+        """Populate everything again so our setting changes do not
+        effect any other tests"""
+        # Set the defaults for the navigation app config again
+        importlib.reload(cms_config)
+        # Repopulate add_to_context in the app registry
+        self.versioning_app.cms_extension.add_to_context = self.add_to_context
+
+    def test_references_has_versioning_enabled_by_default(self):
+        importlib.reload(cms_config)  # Reload so setting gets checked again
+        # The app should have a cms config with the overridden setting
+        references_app = apps.get_app_config('djangocms_references')
+        references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
+
+        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+            configure_cms_apps([self.versioning_app])
+
+        expected = {
+            'unpublish': {'unpublish_dependencies': cms_config.unpublish_dependencies}
+        }
+        self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, expected)
+
+    @override_settings(DJANGOCMS_REFERENCES_VERSIONING_ENABLED=True)
+    def test_references_has_versioning_enabled_if_setting_true(self):
+        importlib.reload(cms_config)  # Reload so setting gets checked again
+        # The app should have a cms config with the overridden setting
+        references_app = apps.get_app_config('djangocms_references')
+        references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
+
+        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+            configure_cms_apps([self.versioning_app])
+
+        expected = {
+            'unpublish': {'unpublish_dependencies': cms_config.unpublish_dependencies}
+        }
+        self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, expected)
+
+    @override_settings(DJANGOCMS_REFERENCES_VERSIONING_ENABLED=False)
+    def test_references_has_versioning_disabled_if_setting_false(self):
+        importlib.reload(cms_config)  # Reload so setting gets checked again
+        # The app should have a cms config with the overridden setting
+        references_app = apps.get_app_config('djangocms_references')
+        references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
+
+        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+            configure_cms_apps([self.versioning_app])
+
+        self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, {})
