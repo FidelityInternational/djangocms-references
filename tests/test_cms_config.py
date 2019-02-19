@@ -150,3 +150,20 @@ class UnpublishDependenciesSettingTestCase(TestCase):
 </div>
 """.format(poll1=str(polls[0]), poll2=str(polls[1]), parent=str(parent))
         self.assertEqual(html, expected)
+
+    @patch('djangocms_references.cms_config.get_all_reference_objects')
+    def test_unpublish_dependencies_when_no_dependencies_found(self, mocked_references):
+        request = RequestFactory().get('/')
+        version = factories.PageVersionFactory()
+        mocked_references.return_value = [
+            # All these querysets are empty
+            PollContent.objects.all(),
+            Child.objects.all(),
+            Parent.objects.all(),
+        ]
+
+        html = unpublish_dependencies(request, version)
+
+        mocked_references.assert_called_once_with(
+            version.content, draft_and_published=True)
+        self.assertEqual(html, '')

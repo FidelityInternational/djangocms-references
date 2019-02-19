@@ -96,6 +96,9 @@ def version_queryset_modifier(queryset):
 def unpublish_dependencies(request, version, *args, **kwargs):
     references = get_all_reference_objects(
         version.content, draft_and_published=True)
+    all_querysets_empty = all([not q.exists() for q in references])
+    if all_querysets_empty:
+        return ""
     return render_to_string(
         'djangocms_references/unpublish_dependencies.html',
         {'references': references}
