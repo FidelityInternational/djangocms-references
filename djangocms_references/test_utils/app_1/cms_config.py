@@ -5,4 +5,4 @@ from .models import Child
 
 class CMSApp1Config(CMSAppConfig):
     djangocms_references_enabled = True
-    reference_fields = {Child.parent}
+    reference_fields = [(Child, "parent")]

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterable
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
@@ -21,11 +22,26 @@ class ReferencesCMSExtension(CMSAppExtension):
     def _make_default(self):
         return defaultdict(lambda: defaultdict(set))
 
-    def register_fields(self, fields):
+    def register_fields(self, definitions):
+        """Registers relations to enable reference retrieval.
+
+        :param definitions: A list of (model, field_name) field.
+
+        Example:
+        (AliasPlugin, 'alias') enables tracking Alias use in plugins,
+        so that pages using the alias will be shown in the references
+        list.
+        """
         # generate reference_models and reference_plugins dict object
-        for field in fields:
-            model = field.field.model
-            related_model = field.field.related_model
+        for definition in definitions:
+            try:
+                model, field_name = definition
+            except (ValueError, TypeError) as e:
+                raise ImproperlyConfigured(
+                    "Elements of the reference_fields list should be (model, field_name) tuples"
+                ) from e
+            field = model._meta.get_field(field_name)
+            related_model = field.related_model
             if (
                 issubclass(model, (CMSPlugin,))
                 and model.__name__ in plugin_pool.plugins
@@ -33,7 +49,7 @@ class ReferencesCMSExtension(CMSAppExtension):
                 store = self.reference_plugins
             else:
                 store = self.reference_models
-            store[related_model][model].add(field.field.name)
+            store[related_model][model].add(field.name)
 
     def configure_list_extra_columns(self, extra_columns):
         """Registers additional columns to be displayed in the reference
@@ -69,11 +85,13 @@ class ReferencesCMSExtension(CMSAppExtension):
         """
         if getattr(cms_config, "reference_fields", None) is not None:
             reference_fields = getattr(cms_config, "reference_fields")
-            if isinstance(reference_fields, set):
+            if isinstance(reference_fields, Iterable) and not isinstance(
+                reference_fields, str
+            ):
                 self.register_fields(reference_fields)
             else:
                 raise ImproperlyConfigured(
-                    "Reference model configuration must be a set instance"
+                    "Reference model configuration must be an Iterable instance"
                 )
         self.configure_list_extra_columns(
             getattr(cms_config, "reference_list_extra_columns", [])
