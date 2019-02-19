@@ -2,9 +2,7 @@ from django.db import models
 
 
 class Parent(models.Model):
-
-    def __str__(self):
-        return str(self.pk)
+    pass
 
 
 class Child(models.Model):

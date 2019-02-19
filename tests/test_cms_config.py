@@ -120,9 +120,10 @@ class UnpublishDependenciesSettingTestCase(TestCase):
         version = factories.PageVersionFactory()
         polls = factories.PollContentFactory.create_batch(2)
         parent = factories.ParentFactory()
+        child = factories.ChildFactory(parent=parent)
         mocked_references.return_value = [
             PollContent.objects.all(),  # this has 2 polls
-            Child.objects.all(),  # this is an empty queryset
+            Child.objects.none(),  # this is an empty queryset
             Parent.objects.all(),  # this has 1 parent
         ]
 
@@ -136,6 +137,9 @@ class UnpublishDependenciesSettingTestCase(TestCase):
         self.assertIn(get_object_preview_url(polls[0]), html)
         self.assertIn(get_object_preview_url(polls[1]), html)
         self.assertIn(get_object_preview_url(parent), html)
+        # we passed an empty Child queryset so this should not have made
+        # it into the html
+        self.assertNotIn(get_object_preview_url(child), html)
 
     @patch('djangocms_references.cms_config.get_all_reference_objects')
     def test_unpublish_dependencies_when_no_dependencies_found(self, mocked_references):

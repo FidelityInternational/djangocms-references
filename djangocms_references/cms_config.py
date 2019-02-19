@@ -100,6 +100,7 @@ def version_queryset_modifier(queryset):
 
 
 def unpublish_dependencies(request, version, *args, **kwargs):
+    """Render a partial template with a list of unpublish dependencies"""
     references = get_all_reference_objects(
         version.content, draft_and_published=True)
     all_querysets_empty = all([not q.exists() for q in references])
