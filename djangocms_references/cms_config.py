@@ -10,7 +10,12 @@ from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
 
 from .datastructures import ExtraColumn
-from .helpers import get_versionable_for_content, version_attr, get_all_reference_objects
+from .helpers import (
+    get_versionable_for_content,
+    version_attr,
+    get_all_reference_objects,
+    get_extra_columns,
+)
 
 
 class ReferencesCMSExtension(CMSAppExtension):
@@ -99,10 +104,12 @@ def unpublish_dependencies(request, version, *args, **kwargs):
         version.content, draft_and_published=True)
     all_querysets_empty = all([not q.exists() for q in references])
     if all_querysets_empty:
-        return ""
+        # When all querysets are empty, handle it the same way as if
+        # there were no querysets at all
+        references = []
     return render_to_string(
         'djangocms_references/unpublish_dependencies.html',
-        {'references': references}
+        {'references': references, 'extra_columns': get_extra_columns()}
     )
 
 

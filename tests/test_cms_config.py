@@ -7,6 +7,7 @@ from django.test import TestCase, RequestFactory, override_settings
 
 from cms import app_registration
 from cms.models import PageContent
+from cms.toolbar.utils import get_object_preview_url
 from cms.utils.setup import configure_cms_apps
 
 from djangocms_references import cms_config
@@ -129,26 +130,12 @@ class UnpublishDependenciesSettingTestCase(TestCase):
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
-        expected = """<div>
-    The following objects have relationships with the object you're about to unpublish:
-    <ul>
-    
-        
-        <li>{poll1}</li>
-        
-        <li>{poll2}</li>
-        
-    
-        
-    
-        
-        <li>{parent}</li>
-        
-    
-    </ul>
-</div>
-""".format(poll1=str(polls[0]), poll2=str(polls[1]), parent=str(parent))
-        self.assertEqual(html, expected)
+        # NOTE: This is not an extensive test of the html, but testing for
+        # exact html will likely be a pain later (making this test
+        # break easily and make it difficult to maintain)
+        self.assertIn(get_object_preview_url(polls[0]), html)
+        self.assertIn(get_object_preview_url(polls[1]), html)
+        self.assertIn(get_object_preview_url(parent), html)
 
     @patch('djangocms_references.cms_config.get_all_reference_objects')
     def test_unpublish_dependencies_when_no_dependencies_found(self, mocked_references):
@@ -156,16 +143,29 @@ class UnpublishDependenciesSettingTestCase(TestCase):
         version = factories.PageVersionFactory()
         mocked_references.return_value = [
             # All these querysets are empty
-            PollContent.objects.all(),
-            Child.objects.all(),
-            Parent.objects.all(),
+            PollContent.objects.none(),
+            Child.objects.none(),
+            Parent.objects.none(),
         ]
 
         html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
-        self.assertEqual(html, '')
+        self.assertIn("No related objects", html)
+
+    @patch('djangocms_references.cms_config.get_all_reference_objects')
+    def test_unpublish_dependencies_when_no_dependencies_registered(self, mocked_references):
+        request = RequestFactory().get('/')
+        version = factories.PageVersionFactory()
+        # No models have relations so no querysets are added
+        mocked_references.return_value = []
+
+        html = cms_config.unpublish_dependencies(request, version)
+
+        mocked_references.assert_called_once_with(
+            version.content, draft_and_published=True)
+        self.assertIn("No related objects", html)
 
 
 class VersioningSettingTestCase(TestCase):
