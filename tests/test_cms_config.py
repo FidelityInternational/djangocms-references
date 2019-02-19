@@ -112,7 +112,7 @@ class IntegrationTestCase(TestCase):
         self.assertCountEqual(reference_models.keys(), expected_models)
 
 
-class UnpublishDependenciesSettingTestCase(TestCase):
+class UnpublishDependenciesTestCase(TestCase):
 
     @patch('djangocms_references.cms_config.get_all_reference_objects')
     def test_unpublish_dependencies(self, mocked_references):
