@@ -10,11 +10,7 @@ import factory
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from djangocms_references.test_utils.app_1.models import Child, Parent
-from djangocms_references.test_utils.polls.models import (
-    Poll,
-    PollContent,
-    PollPlugin,
-)
+from djangocms_references.test_utils.polls.models import Poll, PollContent, PollPlugin
 from djangocms_versioning.models import Version
 
 

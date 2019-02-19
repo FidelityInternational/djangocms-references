@@ -18,7 +18,8 @@ from djangocms_references.test_utils.polls.models import Poll, PollContent
 
 class CMSConfigTestCase(TestCase):
     def test_int_reference_fields_cms_config_parameter(self):
-        """CMS config with int as reference_fields as it expect dict object"""
+        """CMS config with int as reference_fields as it expects
+        a list of tuples with two elements"""
         extensions = cms_config.ReferencesCMSExtension()
         mocked_cms_config = Mock(
             spec=[],
@@ -31,7 +32,8 @@ class CMSConfigTestCase(TestCase):
             extensions.configure_app(mocked_cms_config)
 
     def test_string_reference_fields_cms_config_parameter(self):
-        """CMS config with string as reference_fields as it expect dict object"""
+        """CMS config with string as reference_fields as it expects
+        a list of tuples with two elements"""
         extensions = cms_config.ReferencesCMSExtension()
         mocked_cms_config = Mock(
             spec=[],
@@ -44,12 +46,29 @@ class CMSConfigTestCase(TestCase):
             extensions.configure_app(mocked_cms_config)
 
     def test_list_reference_fields_cms_config_parameter(self):
-        """CMS config with list as reference_fields as it expect dict object"""
+        """CMS config with list of ints as reference_fields as it expects
+        a list of tuples with two elements"""
         extensions = cms_config.ReferencesCMSExtension()
         mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
             reference_fields=[1, 2],
+            app_config=Mock(label="blah_cms_config"),
+        )
+
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.configure_app(mocked_cms_config)
+
+    def test_list_with_tuples_with_incorrect_number_of_elements_reference_fields_cms_config_parameter(
+        self
+    ):
+        """CMS config with list of tuples with three elements as it expects
+        a list of tuples with two elements"""
+        extensions = cms_config.ReferencesCMSExtension()
+        mocked_cms_config = Mock(
+            spec=[],
+            djangocms_references_enabled=True,
+            reference_fields=[(Child, "a field", "too many")],
             app_config=Mock(label="blah_cms_config"),
         )
 
@@ -62,7 +81,7 @@ class CMSConfigTestCase(TestCase):
         mocked_cms_config = Mock(
             spec=[],
             djangocms_references_enabled=True,
-            reference_fields={Child.parent},
+            reference_fields=[(Child, "parent")],
             app_config=Mock(label="blah_cms_config"),
         )
 

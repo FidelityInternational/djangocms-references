@@ -20,15 +20,11 @@ from djangocms_references.helpers import (
     get_reference_models,
     get_reference_objects_from_plugins,
     get_reference_plugins,
-    get_relation,
+    get_lookup,
     get_versionable_for_content,
     version_attr,
 )
-from djangocms_references.test_utils.app_1.models import (
-    Child,
-    Parent,
-    UnknownChild,
-)
+from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
@@ -43,17 +39,17 @@ class GetVersionableTestCase(TestCase):
             self.assertIsNone(get_versionable_for_content("foo"))
 
 
-class GetRelationTestCase(TestCase):
-    def test_get_relation_non_versioned(self):
-        self.assertEqual(get_relation("foo", None), "foo")
+class GetLookupTestCase(TestCase):
+    def test_get_lookup_non_versioned(self):
+        self.assertEqual(get_lookup("foo", None), "foo")
 
-    def test_get_relation_versioned(self):
+    def test_get_lookup_versioned(self):
         versionable = Mock(
             grouper_field=Mock(
                 remote_field=Mock(get_accessor_name=Mock(return_value="bar"))
             )
         )
-        self.assertEqual(get_relation("foo", versionable), "foo__bar")
+        self.assertEqual(get_lookup("foo", versionable), "foo__bar")
 
 
 class GetExtensionTestCase(TestCase):
