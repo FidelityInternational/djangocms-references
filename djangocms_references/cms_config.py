@@ -127,8 +127,8 @@ def unpublish_dependencies(request, version, *args, **kwargs):
         # there were no querysets at all
         references = []
     return render_to_string(
-        'djangocms_references/unpublish_dependencies.html',
-        {'references': references, 'extra_columns': get_extra_columns()}
+        'djangocms_references/references_table.html',
+        {'querysets': references, 'extra_columns': get_extra_columns()}
     )
 
 

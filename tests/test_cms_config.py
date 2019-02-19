@@ -175,7 +175,7 @@ class UnpublishDependenciesTestCase(TestCase):
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
-        self.assertIn("No related objects", html)
+        self.assertIn("There are no related objects", html)
 
     @patch('djangocms_references.cms_config.get_all_reference_objects')
     def test_unpublish_dependencies_when_no_dependencies_registered(self, mocked_references):
@@ -188,7 +188,7 @@ class UnpublishDependenciesTestCase(TestCase):
 
         mocked_references.assert_called_once_with(
             version.content, draft_and_published=True)
-        self.assertIn("No related objects", html)
+        self.assertIn("There are no related objects", html)
 
 
 class VersioningSettingTestCase(TestCase):
