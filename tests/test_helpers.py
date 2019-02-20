@@ -219,17 +219,20 @@ class CombineQuerysetsTestCase(TestCase):
             def __eq__(self, other):
                 return self.model == other.model and self._state == other._state
 
+            def __hash__(self):
+                return hash(self.__repr__())
+
         foo_qs1 = MockQueryset("Foo")
         foo_qs2 = MockQueryset("Foo")
         bar_qs1 = MockQueryset("Bar")
         bar_qs2 = MockQueryset("Bar")
         baz_qs1 = MockQueryset("Baz")
-        result = list(
+        result = set(
             combine_querysets_of_same_models(
                 [foo_qs1], [foo_qs2, bar_qs1], [baz_qs1, bar_qs2]
             )
         )
-        self.assertEqual(result, [foo_qs1 | foo_qs2, bar_qs1 | bar_qs2, baz_qs1])
+        self.assertEqual(result, set([foo_qs1 | foo_qs2, bar_qs1 | bar_qs2, baz_qs1]))
 
 
 class VersionAttrTestCase(TestCase):

@@ -9,6 +9,7 @@ from cms.models import Page, PageContent, Placeholder, TreeNode
 import factory
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
+from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll, PollContent, PollPlugin
 from djangocms_versioning.models import Version
 
@@ -19,6 +20,8 @@ class PlaceholderFactory(factory.django.DjangoModelFactory):
 
 
 class PollFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=12)
+
     class Meta:
         model = Poll
 
@@ -35,6 +38,18 @@ class PollPluginFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = PollPlugin
+
+
+class ParentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Parent
+
+
+class ChildFactory(factory.django.DjangoModelFactory):
+    parent = factory.SubFactory(ParentFactory)
+
+    class Meta:
+        model = Child
 
 
 class UserFactory(factory.django.DjangoModelFactory):
