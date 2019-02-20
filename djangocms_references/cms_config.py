@@ -121,11 +121,6 @@ def unpublish_dependencies(request, version, *args, **kwargs):
     """Render a partial template with a list of unpublish dependencies"""
     references = get_all_reference_objects(
         version.content, draft_and_published=True)
-    all_querysets_empty = all([not q.exists() for q in references])
-    if all_querysets_empty:
-        # When all querysets are empty, handle it the same way as if
-        # there were no querysets at all
-        references = []
     return render_to_string(
         'djangocms_references/references_table.html',
         {'querysets': references, 'extra_columns': get_extra_columns()}
