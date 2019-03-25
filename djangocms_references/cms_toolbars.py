@@ -15,13 +15,11 @@ class ReferencesToolbar(CMSToolbar):
     """
 
     def populate(self):
+        obj = self.toolbar.obj
         opts = References._meta
         if not self.request.user.has_perm(
             "{app_label}.show_references".format(app_label=opts.app_label)
-        ):
-            return
-        obj = self.toolbar.obj
-        if obj is None:
+        ) or obj is None:
             return
         content_type_id = ContentType.objects.get_for_model(obj).pk
         self.toolbar.add_sideframe_button(
