@@ -119,11 +119,10 @@ def version_queryset_modifier(queryset):
 
 def unpublish_dependencies(request, version, *args, **kwargs):
     """Render a partial template with a list of unpublish dependencies"""
-    references = get_all_reference_objects(
-        version.content, draft_and_published=True)
+    references = get_all_reference_objects(version.content, draft_and_published=True)
     return render_to_string(
-        'djangocms_references/references_table.html',
-        {'querysets': references, 'extra_columns': get_extra_columns()}
+        "djangocms_references/references_table.html",
+        {"querysets": references, "extra_columns": get_extra_columns()},
     )
 
 
@@ -139,5 +138,5 @@ class ReferencesCMSAppConfig(CMSAppConfig):
     ]
     reference_list_queryset_modifiers = [version_queryset_modifier]
     versioning_add_to_confirmation_context = {
-        'unpublish': {'unpublish_dependencies': unpublish_dependencies}
+        "unpublish": {"unpublish_dependencies": unpublish_dependencies}
     }

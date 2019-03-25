@@ -132,10 +132,9 @@ class IntegrationTestCase(TestCase):
 
 
 class UnpublishDependenciesTestCase(TestCase):
-
-    @patch('djangocms_references.cms_config.get_all_reference_objects')
+    @patch("djangocms_references.cms_config.get_all_reference_objects")
     def test_unpublish_dependencies(self, mocked_references):
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
         version = factories.PageVersionFactory()
         polls = factories.PollContentFactory.create_batch(2)
         parent = factories.ParentFactory()
@@ -149,7 +148,8 @@ class UnpublishDependenciesTestCase(TestCase):
         html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
-            version.content, draft_and_published=True)
+            version.content, draft_and_published=True
+        )
         # NOTE: This is not an extensive test of the html, but testing for
         # exact html will likely be a pain later (making this test
         # break easily and make it difficult to maintain)
@@ -160,9 +160,9 @@ class UnpublishDependenciesTestCase(TestCase):
         # it into the html
         self.assertNotIn(get_object_preview_url(child), html)
 
-    @patch('djangocms_references.cms_config.get_all_reference_objects')
+    @patch("djangocms_references.cms_config.get_all_reference_objects")
     def test_unpublish_dependencies_when_no_dependencies_found(self, mocked_references):
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
         version = factories.PageVersionFactory()
         # No models have relations so no querysets are added
         mocked_references.return_value = []
@@ -170,13 +170,14 @@ class UnpublishDependenciesTestCase(TestCase):
         html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
-            version.content, draft_and_published=True)
+            version.content, draft_and_published=True
+        )
         self.assertIn("There are no related objects", html)
 
 
 class VersioningSettingTestCase(TestCase):
     def setUp(self):
-        self.versioning_app = apps.get_app_config('djangocms_versioning')
+        self.versioning_app = apps.get_app_config("djangocms_versioning")
         # Empty the context dict so it gets populated
         # from scratch in tests (but save original values first)
         self.add_to_context = self.versioning_app.cms_extension.add_to_context
@@ -193,14 +194,16 @@ class VersioningSettingTestCase(TestCase):
     def test_references_has_versioning_enabled_by_default(self):
         importlib.reload(cms_config)  # Reload so setting gets checked again
         # The app should have a cms config with the overridden setting
-        references_app = apps.get_app_config('djangocms_references')
+        references_app = apps.get_app_config("djangocms_references")
         references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
 
-        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+        with patch.object(
+            app_registration, "get_cms_config_apps", return_value=[references_app]
+        ):
             configure_cms_apps([self.versioning_app])
 
         expected = {
-            'unpublish': {'unpublish_dependencies': cms_config.unpublish_dependencies}
+            "unpublish": {"unpublish_dependencies": cms_config.unpublish_dependencies}
         }
         self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, expected)
 
@@ -208,14 +211,16 @@ class VersioningSettingTestCase(TestCase):
     def test_references_has_versioning_enabled_if_setting_true(self):
         importlib.reload(cms_config)  # Reload so setting gets checked again
         # The app should have a cms config with the overridden setting
-        references_app = apps.get_app_config('djangocms_references')
+        references_app = apps.get_app_config("djangocms_references")
         references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
 
-        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+        with patch.object(
+            app_registration, "get_cms_config_apps", return_value=[references_app]
+        ):
             configure_cms_apps([self.versioning_app])
 
         expected = {
-            'unpublish': {'unpublish_dependencies': cms_config.unpublish_dependencies}
+            "unpublish": {"unpublish_dependencies": cms_config.unpublish_dependencies}
         }
         self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, expected)
 
@@ -223,10 +228,12 @@ class VersioningSettingTestCase(TestCase):
     def test_references_has_versioning_disabled_if_setting_false(self):
         importlib.reload(cms_config)  # Reload so setting gets checked again
         # The app should have a cms config with the overridden setting
-        references_app = apps.get_app_config('djangocms_references')
+        references_app = apps.get_app_config("djangocms_references")
         references_app.cms_config = cms_config.ReferencesCMSAppConfig(references_app)
 
-        with patch.object(app_registration, 'get_cms_config_apps', return_value=[references_app]):
+        with patch.object(
+            app_registration, "get_cms_config_apps", return_value=[references_app]
+        ):
             configure_cms_apps([self.versioning_app])
 
         self.assertDictEqual(self.versioning_app.cms_extension.add_to_context, {})

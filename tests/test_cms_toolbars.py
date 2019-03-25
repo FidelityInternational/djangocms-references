@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.auth.models import Permission
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
 
@@ -20,9 +21,6 @@ urlpatterns = [
 
 @override_settings(ROOT_URLCONF=__name__)
 class TestReferencesCMSToolbars(CMSTestCase):
-    def setUp(self):
-        self.user = self.get_superuser()
-
     def _get_page_request(self, page, user):
         request = RequestFactory().get("/")
         request.session = {}
@@ -51,8 +49,10 @@ class TestReferencesCMSToolbars(CMSTestCase):
         return toolbar
 
     def test_cms_toolbar_has_show_references(self):
-        page_content = PageContentFactory(created_by=self.user)
-        toolbar = self._get_toolbar(page_content, user=self.user, edit_mode=True)
+        user = self.get_standard_user()
+        user.user_permissions.add(Permission.objects.get(codename="show_references"))
+        page_content = PageContentFactory(created_by=user)
+        toolbar = self._get_toolbar(page_content, user=user, edit_mode=True)
         toolbar.populate()
         toolbar.post_template_populate()
         self.assertIsInstance(
@@ -61,3 +61,11 @@ class TestReferencesCMSToolbars(CMSTestCase):
         self.assertEqual(
             toolbar.toolbar.left_items[-1].buttons[0].name, "Show References"
         )
+
+    def test_cms_toolbar_button_not_shown_if_no_permission(self):
+        user = self.get_standard_user()
+        page_content = PageContentFactory(created_by=user)
+        toolbar = self._get_toolbar(page_content, user=user, edit_mode=True)
+        toolbar.populate()
+        toolbar.post_template_populate()
+        self.assertFalse(toolbar.toolbar.left_items)
