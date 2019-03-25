@@ -72,7 +72,10 @@ class ReferencesViewTestCases(CMSTestCase):
     def test_view_endpoint_access_staff_user_with_permission(self):
         staff_user = self.get_staff_user_with_no_permissions()
         staff_user.user_permissions.add(
-            Permission.objects.get(codename="show_references")
+            Permission.objects.get(
+                content_type__app_label="djangocms_references",
+                codename="show_references",
+            )
         )
         with self.login_user_context(staff_user):
             response = self.client.get(self.view_url)

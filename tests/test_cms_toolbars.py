@@ -50,7 +50,12 @@ class TestReferencesCMSToolbars(CMSTestCase):
 
     def test_cms_toolbar_has_show_references(self):
         user = self.get_standard_user()
-        user.user_permissions.add(Permission.objects.get(codename="show_references"))
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="djangocms_references",
+                codename="show_references",
+            )
+        )
         page_content = PageContentFactory(created_by=user)
         toolbar = self._get_toolbar(page_content, user=user, edit_mode=True)
         toolbar.populate()
