@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import reverse
 from django.test import RequestFactory
@@ -62,8 +63,20 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, redirect_url)
 
-    def test_view_endpoint_access_staff_user(self):
+    def test_view_endpoint_access_staff_user_without_permission(self):
         staff_user = self.get_staff_user_with_no_permissions()
+        with self.login_user_context(staff_user):
+            response = self.client.get(self.view_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_view_endpoint_access_staff_user_with_permission(self):
+        staff_user = self.get_staff_user_with_no_permissions()
+        staff_user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="djangocms_references",
+                codename="show_references",
+            )
+        )
         with self.login_user_context(staff_user):
             response = self.client.get(self.view_url)
         self.assertEqual(response.status_code, 200)

@@ -1,13 +1,23 @@
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 
 from .helpers import get_all_reference_objects, get_extra_columns
+from .models import References
 
 
 class ReferencesView(TemplateView):
     template_name = "djangocms_references/references.html"
+
+    def dispatch(self, *args, **kwargs):
+        opts = References._meta
+        if not self.request.user.has_perm(
+            "{app_label}.show_references".format(app_label=opts.app_label)
+        ):
+            raise PermissionDenied
+        return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
