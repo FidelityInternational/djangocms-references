@@ -10,7 +10,10 @@ from cms.toolbar.items import SideframeButton
 from cms.toolbar.toolbar import CMSToolbar
 
 from djangocms_references.cms_toolbars import ReferencesToolbar
-from djangocms_references.test_utils.factories import PageContentFactory, UserFactory
+from djangocms_references.test_utils.factories import (
+    PageContentFactory,
+    UserFactory,
+)
 
 
 urlpatterns = [

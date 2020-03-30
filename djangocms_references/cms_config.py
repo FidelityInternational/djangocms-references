@@ -12,10 +12,10 @@ from cms.plugin_pool import plugin_pool
 
 from .datastructures import ExtraColumn
 from .helpers import (
-    get_versionable_for_content,
-    version_attr,
     get_all_reference_objects,
     get_extra_columns,
+    get_versionable_for_content,
+    version_attr,
 )
 
 
