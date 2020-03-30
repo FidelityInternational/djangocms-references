@@ -20,3 +20,11 @@ Run::
 
 Add ``djangocms_references`` to your project's ``INSTALLED_APPS``.
 
+
+Run tests
+=========
+
+Run::
+
+    pip install -r tests/requirements.txt
+    python setup.py test

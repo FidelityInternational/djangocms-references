@@ -17,14 +17,18 @@ from djangocms_references.helpers import (
     get_all_reference_objects,
     get_extension,
     get_filters,
+    get_lookup,
     get_reference_models,
     get_reference_objects_from_plugins,
     get_reference_plugins,
-    get_lookup,
     get_versionable_for_content,
     version_attr,
 )
-from djangocms_references.test_utils.app_1.models import Child, Parent, UnknownChild
+from djangocms_references.test_utils.app_1.models import (
+    Child,
+    Parent,
+    UnknownChild,
+)
 from djangocms_references.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,

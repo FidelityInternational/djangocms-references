@@ -194,7 +194,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         with self.login_user_context(self.superuser), patch(
             "djangocms_references.views.get_extra_columns", return_value=[extra_column]
-        ) as get_extra_columns:
+        ):
             response = self.client.get(self.view_url)
 
         self.assertEqual(response.context["extra_columns"], [extra_column])

@@ -7,11 +7,15 @@ from django.contrib.sites.models import Site
 from cms.models import Page, PageContent, Placeholder, TreeNode
 
 import factory
+from djangocms_versioning.models import Version
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from djangocms_references.test_utils.app_1.models import Child, Parent
-from djangocms_references.test_utils.polls.models import Poll, PollContent, PollPlugin
-from djangocms_versioning.models import Version
+from djangocms_references.test_utils.polls.models import (
+    Poll,
+    PollContent,
+    PollPlugin,
+)
 
 
 class PlaceholderFactory(factory.django.DjangoModelFactory):
