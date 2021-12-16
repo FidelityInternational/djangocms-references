@@ -1,4 +1,5 @@
 HELPER_SETTINGS = {
+    "SECRET_KEY": "djangocmsreferencestestsuitekey",
     "INSTALLED_APPS": [
         "djangocms_references",
         "djangocms_versioning",
