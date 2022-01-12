@@ -15,11 +15,12 @@ HELPER_SETTINGS = {
         "djangocms_versioning": None,
         "djangocms_references.test_utils.polls": None,
     },
+    "DEFAULT_AUTO_FIELD": "django.db.models.AutoField",
 }
 
 
 def run():
-    from djangocms_helper import runner
+    from app_helper import runner
 
     runner.cms("djangocms_references", extra_args=[])
 
