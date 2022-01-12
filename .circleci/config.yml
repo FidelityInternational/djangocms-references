@@ -92,9 +92,9 @@ jobs:
 
 
   flake8:
-    <<: *py38default
+    <<: *py39default
   isort:
-    <<: *py38default
+    <<: *py39default
 
   py37-dj22-sqlite-cms40:
     <<: *py37default
