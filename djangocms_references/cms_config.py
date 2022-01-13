@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.plugin_base import CMSPlugin

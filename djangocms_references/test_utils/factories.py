@@ -8,6 +8,7 @@ from cms.models import Page, PageContent, Placeholder, TreeNode
 
 import factory
 from djangocms_versioning.models import Version
+from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from djangocms_references.test_utils.app_1.models import Child, Parent
@@ -18,45 +19,45 @@ from djangocms_references.test_utils.polls.models import (
 )
 
 
-class PlaceholderFactory(factory.django.DjangoModelFactory):
+class PlaceholderFactory(DjangoModelFactory):
     class Meta:
         model = Placeholder
 
 
-class PollFactory(factory.django.DjangoModelFactory):
+class PollFactory(DjangoModelFactory):
     name = FuzzyText(length=12)
 
     class Meta:
         model = Poll
 
 
-class PollContentFactory(factory.django.DjangoModelFactory):
+class PollContentFactory(DjangoModelFactory):
     poll = factory.SubFactory(PollFactory)
 
     class Meta:
         model = PollContent
 
 
-class PollPluginFactory(factory.django.DjangoModelFactory):
+class PollPluginFactory(DjangoModelFactory):
     poll = factory.SubFactory(PollFactory)
 
     class Meta:
         model = PollPlugin
 
 
-class ParentFactory(factory.django.DjangoModelFactory):
+class ParentFactory(DjangoModelFactory):
     class Meta:
         model = Parent
 
 
-class ChildFactory(factory.django.DjangoModelFactory):
+class ChildFactory(DjangoModelFactory):
     parent = factory.SubFactory(ParentFactory)
 
     class Meta:
         model = Child
 
 
-class UserFactory(factory.django.DjangoModelFactory):
+class UserFactory(DjangoModelFactory):
     username = FuzzyText(length=12)
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
@@ -75,7 +76,7 @@ class UserFactory(factory.django.DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class AbstractVersionFactory(factory.DjangoModelFactory):
+class AbstractVersionFactory(DjangoModelFactory):
     object_id = factory.SelfAttribute("content.id")
     content_type = factory.LazyAttribute(
         lambda o: ContentType.objects.get_for_model(o.content)
@@ -87,7 +88,7 @@ class AbstractVersionFactory(factory.DjangoModelFactory):
         abstract = True
 
 
-class TreeNodeFactory(factory.django.DjangoModelFactory):
+class TreeNodeFactory(DjangoModelFactory):
     site = factory.fuzzy.FuzzyChoice(Site.objects.all())
     depth = 0
     # NOTE: Generating path this way is probably not a good way of
@@ -101,14 +102,14 @@ class TreeNodeFactory(factory.django.DjangoModelFactory):
         model = TreeNode
 
 
-class PageFactory(factory.django.DjangoModelFactory):
+class PageFactory(DjangoModelFactory):
     node = factory.SubFactory(TreeNodeFactory)
 
     class Meta:
         model = Page
 
 
-class PageContentFactory(factory.django.DjangoModelFactory):
+class PageContentFactory(DjangoModelFactory):
     page = factory.SubFactory(PageFactory)
     language = FuzzyChoice(["en", "fr", "it"])
     title = FuzzyText(length=12)

@@ -1,7 +1,0 @@
-djangocms-helper
-tox
-coverage
-flake8
-isort
-factory-boy
-https://www.github.com/divio/djangocms-versioning/archive/master.zip

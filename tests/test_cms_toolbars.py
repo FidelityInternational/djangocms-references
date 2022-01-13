@@ -1,8 +1,9 @@
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
+from django.urls import re_path
 
 from cms.middleware.toolbar import ToolbarMiddleware
 from cms.test_utils.testcases import CMSTestCase
@@ -17,8 +18,8 @@ from djangocms_references.test_utils.factories import (
 
 
 urlpatterns = [
-    url(r"^references/", include("djangocms_references.urls")),
-    url(r"^admin/", admin.site.urls),
+    re_path(r"^references/", include("djangocms_references.urls")),
+    re_path(r"^admin/", admin.site.urls),
 ]
 
 
@@ -29,7 +30,7 @@ class TestReferencesCMSToolbars(CMSTestCase):
         request.session = {}
         request.user = user
         request.current_page = page
-        mid = ToolbarMiddleware()
+        mid = ToolbarMiddleware(request)
         mid.process_request(request)
         if hasattr(request, "toolbar"):
             request.toolbar.populate()
