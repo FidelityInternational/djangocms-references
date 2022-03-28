@@ -7,6 +7,8 @@ from django.views.generic.base import TemplateView
 from .helpers import get_all_reference_objects, get_extra_columns
 from .models import References
 
+from djangocms_versioning.constants import VERSION_STATES
+
 
 class ReferencesView(TemplateView):
     template_name = "djangocms_references/references.html"
@@ -40,10 +42,10 @@ class ReferencesView(TemplateView):
         except model.DoesNotExist:
             raise Http404
 
-        draft_and_published = self.request.GET.get("state") == "draft_and_published"
+        state = self.request.GET.get("state")
 
         querysets = get_all_reference_objects(
-            obj, draft_and_published=draft_and_published
+            obj, state=False
         )
 
         context.update(
@@ -51,8 +53,9 @@ class ReferencesView(TemplateView):
                 "title": _("References of {object}").format(object=obj),
                 "opts": model._meta,
                 "querysets": querysets,
-                "draft_and_published": draft_and_published,
+                "selected_state": state,
                 "extra_columns": extra_columns,
+                "version_states": VERSION_STATES
             }
         )
         return context
