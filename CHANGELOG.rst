@@ -2,6 +2,10 @@
 Changelog
 =========
 
+0.0.10 (2022-03-30)
+===================
+* feat: Added admin list action icon template and svg
+
 Unreleased
 ==========
 * Python 3.8, 3.9 support added
