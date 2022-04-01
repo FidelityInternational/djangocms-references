@@ -10,6 +10,8 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.plugin_base import CMSPlugin
 from cms.plugin_pool import plugin_pool
 
+from djangocms_alias.models import AliasPlugin
+
 from .datastructures import ExtraColumn
 from .helpers import (
     get_all_reference_objects,
@@ -131,6 +133,7 @@ class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_versioning_enabled = getattr(
         settings, "DJANGOCMS_REFERENCES_VERSIONING_ENABLED", True
     )
+    reference_fields = [(AliasPlugin, 'alias')]
     reference_list_extra_columns = [
         (version_attr(lambda v: v.get_state_display()), _("Status")),
         (version_attr(lambda v: v.created_by), _("Author")),
