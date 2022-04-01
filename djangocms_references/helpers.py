@@ -290,8 +290,9 @@ def get_all_reference_objects(content, state_selected, state=True):
     if postprocess:
         querysets = postprocess(querysets)
     if state_selected != "all":
-        # Get a list of versioned object ID's which is in the filter selected state'
+        # Get a list of versioned object ID's which is in the filter selected state
         id_list = get_version_ids(querysets, state_selected)
+        # Filter out all objects where the version matches the state selected by using the list of id's
         querysets = querysets.filter(id__in=id_list)
 
     return list(apply_additional_modifiers(qs) for qs in querysets)
