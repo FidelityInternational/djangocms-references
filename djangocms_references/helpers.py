@@ -292,9 +292,9 @@ def get_all_reference_objects(content, state_selected, state=True):
     if state_selected != "all":
         # Get a list of versioned object ID's which is in the filter selected state'
         id_list = get_version_ids(querysets, state_selected)
-        filtered_queryset = querysets.filter(id__in=id_list)
+        querysets = querysets.filter(id__in=id_list)
 
-    return list(apply_additional_modifiers(qs) for qs in filtered_queryset)
+    return list(apply_additional_modifiers(qs) for qs in querysets)
 
 
 def version_attr(func):
