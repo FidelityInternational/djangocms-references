@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* Feature: Added Alias configuration
 
 1.0.1 (2022-03-31)
 ==================
