@@ -42,18 +42,16 @@ class ReferencesView(TemplateView):
         except model.DoesNotExist:
             raise Http404
 
-        state = self.request.GET.get("state")
+        selected_state = self.request.GET.get("state")
 
-        querysets = get_all_reference_objects(
-            obj, state=False
-        )
+        querysets = get_all_reference_objects(obj, selected_state)
 
         context.update(
             {
                 "title": _("References of {object}").format(object=obj),
                 "opts": model._meta,
                 "querysets": querysets,
-                "selected_state": state,
+                "selected_state": selected_state,
                 "extra_columns": extra_columns,
                 "version_states": VERSION_STATES
             }

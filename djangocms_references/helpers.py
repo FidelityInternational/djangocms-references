@@ -269,7 +269,7 @@ def get_version_ids(querysets, state):
     return list_of_ids
 
 
-def get_all_reference_objects(content, state_selected, state=True):
+def get_all_reference_objects(content, state_selected):
     """Retrieves related objects (directly related and through plugins),
     combines the querysets of the same models and applies selected postprocessing
     functions (currently only filtering by version state).
@@ -281,12 +281,10 @@ def get_all_reference_objects(content, state_selected, state=True):
     :param draft_and_published: Set to True if only draft or published
                                 objects should be returned
     """
-    postprocess = None
-    if state:
-        postprocess = partial(map, filter_only_draft_and_published)
-        querysets = combine_querysets_of_same_models(
-            get_reference_objects(content), get_reference_objects_from_plugins(content)
-        )
+    postprocess = partial(map, filter_only_draft_and_published)
+    querysets = combine_querysets_of_same_models(
+        get_reference_objects(content), get_reference_objects_from_plugins(content)
+    )
     if postprocess:
         querysets = postprocess(querysets)
     if state_selected != "all":
