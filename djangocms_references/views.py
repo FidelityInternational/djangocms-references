@@ -4,10 +4,10 @@ from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 
+from djangocms_versioning.constants import VERSION_STATES
+
 from .helpers import get_all_reference_objects, get_extra_columns
 from .models import References
-
-from djangocms_versioning.constants import VERSION_STATES
 
 
 class ReferencesView(TemplateView):
