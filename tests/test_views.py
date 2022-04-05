@@ -199,3 +199,67 @@ class ReferencesViewTestCases(CMSTestCase):
             response = self.client.get(self.view_url)
 
         self.assertEqual(response.context["extra_columns"], [extra_column])
+
+    def test_view_draft_filter_applied(self):
+        poll = PollFactory()
+
+        archived = PageVersionFactory()
+        placeholder1 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(archived.content),
+            object_id=archived.content.id,
+        )
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+
+        version2 = archived.copy(archived.created_by)
+        version2.publish(archived.created_by)
+        version3 = version2.copy(version2.created_by)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_view_url(
+                    content_type_id=ContentType.objects.get_for_model(poll).pk,
+                    object_id=poll.id,
+                )
+                + "?state=draft"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("querysets", response.context)
+        # queryset should contain page
+        self.assertEqual(response.context["querysets"][0].count(), 2)
+        # Published content should not be displayed in the changelist
+        self.assertNotIn(archived.content, response.context["querysets"][0])
+        self.assertIn(version2.content, response.context["querysets"][0])
+        self.assertIn(version3.content, response.context["querysets"][0])
+
+    def test_view_publised_filter_applied(self):
+        poll = PollFactory()
+
+        archived = PageVersionFactory()
+        placeholder1 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(archived.content),
+            object_id=archived.content.id,
+        )
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+
+        version2 = archived.copy(archived.created_by)
+        version2.publish(archived.created_by)
+        version3 = version2.copy(version2.created_by)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_view_url(
+                    content_type_id=ContentType.objects.get_for_model(poll).pk,
+                    object_id=poll.id,
+                )
+                + "?state=published"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("querysets", response.context)
+        # queryset should contain page
+        self.assertEqual(response.context["querysets"][0].count(), 2)
+        # Published content should not be displayed in the changelist
+        self.assertNotIn(archived.content, response.context["querysets"][0])
+        self.assertIn(version2.content, response.context["querysets"][0])
+        self.assertIn(version3.content, response.context["querysets"][0])

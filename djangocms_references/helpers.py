@@ -257,19 +257,13 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
-def get_version_ids(querysets, state):
-    from djangocms_versioning.models import Version
-    list_of_ids = []
-    for query in querysets:
-        for q in query:
-            version = Version.objects.filter(pk=q.pk)
-            if version.exists():
-                if version.first().state == state:
-                    list_of_ids.append(q.id)
-    return list_of_ids
+def apply_filters(queryset, model, state_selected):
+    if get_versionable_for_content(model):
+        queryset = model.objects.filter(versions__state__in=[state_selected])
+    return queryset
 
 
-def get_all_reference_objects(content, state_selected):
+def get_all_reference_objects(content, state_selected=None, model=None):
     """Retrieves related objects (directly related and through plugins),
     combines the querysets of the same models and applies selected postprocessing
     functions (currently only filtering by version state).
@@ -288,11 +282,7 @@ def get_all_reference_objects(content, state_selected):
     if postprocess:
         querysets = postprocess(querysets)
     if state_selected != "all":
-        # Get a list of versioned object ID's which is in the filter selected state
-        id_list = get_version_ids(querysets, state_selected)
-        # Filter out all objects where the version matches the state selected by using the list of id's
-        querysets = querysets.filter(id__in=id_list)
-
+        querysets = list(apply_filters(qs, model, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
 

@@ -42,9 +42,14 @@ class ReferencesView(TemplateView):
         except model.DoesNotExist:
             raise Http404
 
-        selected_state = self.request.GET.get("state")
+        selected_state = self.request.GET.get("state", 'all')
 
-        querysets = get_all_reference_objects(obj, selected_state)
+        if selected_state not in str(VERSION_STATES):
+            selected_state = "all"
+
+        querysets = get_all_reference_objects(
+            obj, selected_state, model
+        )
 
         context.update(
             {
