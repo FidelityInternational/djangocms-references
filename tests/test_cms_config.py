@@ -10,6 +10,8 @@ from cms.models import PageContent
 from cms.toolbar.utils import get_object_preview_url
 from cms.utils.setup import configure_cms_apps
 
+from djangocms_alias.models import Alias
+
 from djangocms_references import cms_config
 from djangocms_references.test_utils import factories
 from djangocms_references.test_utils.app_1.models import Child, Parent
@@ -126,7 +128,7 @@ class IntegrationTestCase(TestCase):
         reference_models = apps.get_app_config(
             "djangocms_references"
         ).cms_extension.reference_models
-        expected_models = [Parent, Poll]
+        expected_models = [Alias, Parent, Poll]
 
         self.assertCountEqual(reference_models.keys(), expected_models)
 
