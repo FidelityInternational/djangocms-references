@@ -7,8 +7,8 @@ from djangocms_alias import admin
 
 def _get_references_link(self, obj, request):
     alias_content_type = ContentType.objects.get(
-        app_label=self._meta.app_label,
-        model_Name=self._meta.model_name,
+        app_label=obj.alias._meta.app_label,
+        model=obj.alias._meta.model_name,
     )
 
     url = reverse_lazy(
@@ -16,21 +16,23 @@ def _get_references_link(self, obj, request):
         kwargs={"content_type_id": alias_content_type.id, "object_id": obj.alias.id}
     )
 
-    return render_to_string("djangocms_references", {"url": url})
+    return render_to_string("djangocms_references/references_icon.html", {"url": url})
 
 
-def get_list_display(func):
+admin.AliasContentAdmin._get_references_link = _get_references_link
+
+
+def get_list_actions(func):
     """
     Add references action to alias list display
     """
     def inner(self, *args, **kwargs):
-        list_display = func(self, *args, **kwargs)
-        list_display.append(self._get_references_link)
-        return list_display
+        list_actions = func(self, *args, **kwargs)
+        list_actions.append(self._get_references_link)
+        return list_actions
     return inner
 
 
-admin.AliasContentAdmin._get_references_link = _get_references_link
-admin.AliasContentAdmin.get_list_display = admin.AliasContentAdmin.get_list_display(
-    admin.AliasContentAdmin.get_list_display
+admin.AliasContentAdmin.get_list_actions = get_list_actions(
+    admin.AliasContentAdmin.get_list_actions
 )
