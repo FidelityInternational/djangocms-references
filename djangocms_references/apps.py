@@ -9,4 +9,4 @@ class ReferencesConfig(AppConfig):
     verbose_name = _("django CMS References")
 
     def ready(self):
-        from .monkeypatch import admin
+        from .monkeypatch import admin # NOQA
