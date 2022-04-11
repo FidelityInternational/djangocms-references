@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* Fix: Addd sideframe functionality to references icon
 
 1.0.1 (2022-03-31)
 ==================
