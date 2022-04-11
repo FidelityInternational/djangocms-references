@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* Fix: Added Alias list_action monkeypatch for references
 
 1.1.0 (2022-04-06)
 ==================
