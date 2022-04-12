@@ -6,6 +6,8 @@ HELPER_SETTINGS = {
         "djangocms_versioning",
         "djangocms_references.test_utils.app_1",
         "djangocms_references.test_utils.polls",
+        "djangocms_references.test_utils.app_2",
+        "djangocms_references.test_utils.app_3",
     ],
     "MIGRATION_MODULES": {
         "auth": None,

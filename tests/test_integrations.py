@@ -1,5 +1,3 @@
-
-
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
@@ -9,9 +7,13 @@ from cms.test_utils.testcases import CMSTestCase
 from djangocms_alias.models import Alias as AliasModel, AliasContent, Category
 from djangocms_alias.utils import is_versioning_enabled
 
+from djangocms_references.test_utils.app_2.models import ExtensionModel, GrouperModel
+from djangocms_references.test_utils.app_3.cms_plugins import ExtensionPlugin
+
+
 
 class AliasReferencesIntegrationTestCase(CMSTestCase):
-    def test_menucontent_references_integration(self):
+    def test_aliases_references_integration(self):
         """
         When opening the references for a given alias, the objects which reference it should be listed
         """
@@ -62,3 +64,50 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
 
         self.assertContains(response, alias.name)
         self.assertContains(response, alias_plugin.plugin_type.lower())
+
+
+class NestedAppIntegrationTestCase(CMSTestCase):
+    def test_nested_app_references(self):
+        """"""
+        grouper = GrouperModel.objects.create(name="Test Grouper")
+        content_model = ExtensionModel.objects.create(grouper=grouper)
+        user = self.get_superuser()
+        kwargs = {}
+        if is_versioning_enabled():
+            kwargs = {"created_by": user}
+        page = create_page(
+            title="References Nested Integration Test",
+            template="page.html",
+            language="en",
+            menu_title="",
+            in_navigation=True,
+            **kwargs
+        )
+        if is_versioning_enabled():
+            page_content = create_title("en", "Draft Page", page, created_by=user)
+        else:
+            page_content = page.pagecontent_set.last()
+        placeholder = page_content.get_placeholders().get(
+            slot="content"
+        )
+        nested_reference_plugin = add_plugin(
+            placeholder,
+            ExtensionPlugin,
+            language="en",
+            field_referenced=content_model,
+        )
+
+        nested_model_content_type = ContentType.objects.get(app_label="djangocms_references", model="contentmodel")
+        references_endpoint = reverse(
+            "djangocms_references:references-index",
+            kwargs={"content_type_id": nested_model_content_type.id, "object_id": content_model.id}
+        )
+
+        with self.login_user_context(user):
+            response = self.client.get(references_endpoint[4:])
+
+        import pdb
+        pdb.set_trace()
+
+        self.assertContains(response, content_model.label)
+        self.assertContains(response, nested_reference_plugin.plugin_type.lower())
