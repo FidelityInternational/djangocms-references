@@ -7,8 +7,11 @@ from cms.test_utils.testcases import CMSTestCase
 from djangocms_alias.models import Alias as AliasModel, AliasContent, Category
 from djangocms_alias.utils import is_versioning_enabled
 
-from djangocms_references.test_utils.app_2.models import ExtensionModel, GrouperModel
-from djangocms_references.test_utils.app_3.cms_plugins import ExtensionPlugin
+from djangocms_references.test_utils.factories import PollContentFactory
+from djangocms_references.test_utils.nested_references_app.models import (
+    NestedPoll,
+    ThroughModel,
+)
 
 
 class AliasReferencesIntegrationTestCase(CMSTestCase):
@@ -68,8 +71,11 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
 class NestedAppIntegrationTestCase(CMSTestCase):
     def test_nested_app_references(self):
         """"""
-        grouper = GrouperModel.objects.create(name="Test Grouper")
-        content_model = ExtensionModel.objects.create(grouper=grouper)
+        poll_content = PollContentFactory()
+        poll = poll_content.poll
+        through_model = ThroughModel.objects.create(grouper=poll)
+        nested_model = NestedPoll.objects.create(through=through_model)
+
         user = self.get_superuser()
         kwargs = {}
         if is_versioning_enabled():
@@ -91,22 +97,19 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         )
         nested_reference_plugin = add_plugin(
             placeholder,
-            ExtensionPlugin,
+            "DeeplyNestedPollPlugin",
             language="en",
-            field_referenced=content_model,
+            nested_poll=nested_model,
         )
 
-        nested_model_content_type = ContentType.objects.get(app_label="djangocms_references", model="contentmodel")
+        poll_content_type = ContentType.objects.get(app_label="polls", model="poll")
         references_endpoint = reverse(
             "djangocms_references:references-index",
-            kwargs={"content_type_id": nested_model_content_type.id, "object_id": content_model.id}
+            kwargs={"content_type_id": poll_content_type.id, "object_id": poll.id}
         )
 
         with self.login_user_context(user):
-            # TODO: Figure out why the CMS is behaving inconsistently here
-            # Above, language is not prepended to the string, here it is, why is this? URL setup hasn't changed.
-            response = self.client.get(references_endpoint[4:])
+            response = self.client.get(references_endpoint)
 
-
-        self.assertContains(response, content_model.label)
+        self.assertContains(response, poll.name)
         self.assertContains(response, nested_reference_plugin.plugin_type.lower())
