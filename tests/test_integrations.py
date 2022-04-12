@@ -11,7 +11,6 @@ from djangocms_references.test_utils.app_2.models import ExtensionModel, Grouper
 from djangocms_references.test_utils.app_3.cms_plugins import ExtensionPlugin
 
 
-
 class AliasReferencesIntegrationTestCase(CMSTestCase):
     def test_aliases_references_integration(self):
         """
@@ -104,10 +103,10 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         )
 
         with self.login_user_context(user):
+            # TODO: Figure out why the CMS is behaving inconsistently here
+            # Above, language is not prepended to the string, here it is, why is this? URL setup hasn't changed.
             response = self.client.get(references_endpoint[4:])
 
-        import pdb
-        pdb.set_trace()
 
         self.assertContains(response, content_model.label)
         self.assertContains(response, nested_reference_plugin.plugin_type.lower())
