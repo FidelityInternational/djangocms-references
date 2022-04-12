@@ -5,4 +5,4 @@ from .models import DeeplyNestedPollPlugin
 
 class CMSApp3Config(CMSAppConfig):
     djangocms_references_enabled = True
-    reference_fields = [(DeeplyNestedPollPlugin, "nested_poll")]
+    reference_fields = [(DeeplyNestedPollPlugin, "deeply_nested_poll")]

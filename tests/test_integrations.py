@@ -10,7 +10,7 @@ from djangocms_alias.utils import is_versioning_enabled
 from djangocms_references.test_utils.factories import PollContentFactory
 from djangocms_references.test_utils.nested_references_app.models import (
     NestedPoll,
-    ThroughModel,
+    DeeplyNestedPoll,
 )
 
 
@@ -73,8 +73,8 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         """"""
         poll_content = PollContentFactory()
         poll = poll_content.poll
-        through_model = ThroughModel.objects.create(grouper=poll)
-        nested_model = NestedPoll.objects.create(through=through_model)
+        nested_poll = NestedPoll.objects.create(poll=poll)
+        deeply_nested_poll = DeeplyNestedPoll.objects.create(nested_poll=nested_poll)
 
         user = self.get_superuser()
         kwargs = {}
@@ -99,7 +99,7 @@ class NestedAppIntegrationTestCase(CMSTestCase):
             placeholder,
             "DeeplyNestedPollPlugin",
             language="en",
-            nested_poll=nested_model,
+            deeply_nested_poll=deeply_nested_poll,
         )
 
         poll_content_type = ContentType.objects.get(app_label="polls", model="poll")
