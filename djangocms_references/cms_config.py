@@ -25,13 +25,15 @@ class ReferencesCMSExtension(CMSAppExtension):
     def __init__(self):
         self.reference_models = self._make_default()
         self.reference_plugins = self._make_default()
+        self.reference_complex_relationships = self._make_default()
         self.list_extra_columns = []
         self.list_queryset_modifiers = []
 
     def _make_default(self):
         return defaultdict(lambda: defaultdict(set))
 
-    def validate_nested_relationship(self, model, fields):
+    def get_nested_relationship(self, model, fields):
+
         for validation_field in fields:
             try:
                 model = getattr(model, validation_field).field.related_model
@@ -39,6 +41,7 @@ class ReferencesCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "Elements of the reference_fields list should be (model, field_name) tuples"
                 ) from e
+        return model
 
     def register_fields(self, definitions):
         """Registers relations to enable reference retrieval.
@@ -58,9 +61,12 @@ class ReferencesCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "Elements of the reference_fields list should be (model, field_name) tuples"
                 ) from e
-            fields = field_name.split("__")
-            self.validate_nested_relationship(model, fields)
-            related_model = fields[0].related_model
+            if "__" in field_name:
+                fields = field_name.split("__")
+                related_model = self.get_nested_relationship(model, fields)
+            else:
+                field = model._meta.get_field(field_name)
+                related_model = field.related_model
             if (
                 issubclass(model, (CMSPlugin,))
                 and model.__name__ in plugin_pool.plugins

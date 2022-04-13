@@ -111,5 +111,4 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         with self.login_user_context(user):
             response = self.client.get(references_endpoint)
 
-        self.assertContains(response, poll.name)
-        self.assertContains(response, nested_reference_plugin.plugin_type.lower())
+        self.assertContains(response, poll_content)
