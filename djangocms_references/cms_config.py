@@ -31,6 +31,15 @@ class ReferencesCMSExtension(CMSAppExtension):
     def _make_default(self):
         return defaultdict(lambda: defaultdict(set))
 
+    def validate_nested_relationship(self, model, fields):
+        for validation_field in fields:
+            try:
+                model = getattr(model, validation_field).field.related_model
+            except (ValueError, TypeError) as e:
+                raise ImproperlyConfigured(
+                    "Elements of the reference_fields list should be (model, field_name) tuples"
+                ) from e
+
     def register_fields(self, definitions):
         """Registers relations to enable reference retrieval.
 
@@ -49,8 +58,9 @@ class ReferencesCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "Elements of the reference_fields list should be (model, field_name) tuples"
                 ) from e
-            field = model._meta.get_field(field_name)
-            related_model = field.related_model
+            fields = field_name.split("__")
+            self.validate_nested_relationship(model, fields)
+            related_model = fields[0].related_model
             if (
                 issubclass(model, (CMSPlugin,))
                 and model.__name__ in plugin_pool.plugins
@@ -58,7 +68,7 @@ class ReferencesCMSExtension(CMSAppExtension):
                 store = self.reference_plugins
             else:
                 store = self.reference_models
-            store[related_model][model].add(field.name)
+            store[related_model][model].add(field_name)
 
     def configure_list_extra_columns(self, extra_columns):
         """Registers additional columns to be displayed in the reference
