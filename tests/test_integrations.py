@@ -67,6 +67,9 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
 
         self.assertContains(response, alias.name)
         self.assertContains(response, alias_plugin.plugin_type.lower())
+        self.assertContains(response, "pagecontent")
+        self.assertContains(response, get_object_preview_url(page_content))
+        self.assertContains(response, page_content.versions.first().state)
 
 
 class NestedAppIntegrationTestCase(CMSTestCase):
