@@ -9,7 +9,7 @@ from django.test import TestCase
 from cms.api import add_plugin
 
 from djangocms_references import helpers
-from djangocms_references.compat import DJANGO_GTE_21, VERSIONING_INSTALLED
+from djangocms_references.compat import DJANGO_GTE_21
 from djangocms_references.helpers import (
     _get_reference_models,
     combine_querysets_of_same_models,
