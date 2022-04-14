@@ -33,7 +33,12 @@ class ReferencesCMSExtension(CMSAppExtension):
         return defaultdict(lambda: defaultdict(set))
 
     def get_nested_relationship(self, model, fields):
+        """Throws ImproperlyConfigured if relationship provided doesn't exist,
+        returns the last model in the relationship
 
+        :param model: Target model
+        :param fields: List of fields targetting next model
+        """
         for validation_field in fields:
             try:
                 model = getattr(model, validation_field).field.related_model
