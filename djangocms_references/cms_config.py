@@ -69,7 +69,6 @@ class ReferencesCMSExtension(CMSAppExtension):
                 related_model = field.related_model
             if (
                 issubclass(model, (CMSPlugin,))
-                and model.__name__ in plugin_pool.plugins
             ):
                 store = self.reference_plugins
             else:

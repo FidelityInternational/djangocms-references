@@ -199,12 +199,9 @@ def get_reference_objects_from_plugins(content):
     # querysets
     sources = convert_plugin_querysets_to_sources(querysets)
     for ctype_id, group_sources in groupby(sources, itemgetter("content_type")):
-        print(ContentType.objects.get(id=ctype_id))
-        # print(f"CType_id:{ctype_id}, group_sources: {group_sources}")
         content_type = ContentType.objects.get_for_id(ctype_id)
-        sources = [source["object_id"] for source in group_sources]
         yield content_type.get_all_objects_for_this_type(
-            pk__in=sources
+            pk__in=[source["object_id"] for source in group_sources]
         )
 
 
@@ -275,9 +272,8 @@ def get_all_reference_objects(content, draft_and_published=False):
     postprocess = None
     if draft_and_published:
         postprocess = partial(map, filter_only_draft_and_published)
-    reference_objects = get_reference_objects_from_plugins(content)
     querysets = combine_querysets_of_same_models(
-        get_reference_objects(content), reference_objects
+        get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
     if postprocess:
         querysets = postprocess(querysets)

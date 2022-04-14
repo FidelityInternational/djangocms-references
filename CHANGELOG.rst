@@ -4,6 +4,8 @@ Changelog
 
 Unreleased
 ==========
+* Fix: Displays page plugin is attached to, rather than plugin in references
+* Fix: Handles complex through relationships
 
 1.1.1 (2022-04-11)
 ==================

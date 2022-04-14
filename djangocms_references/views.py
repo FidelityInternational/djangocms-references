@@ -45,8 +45,6 @@ class ReferencesView(TemplateView):
         querysets = get_all_reference_objects(
             obj, draft_and_published=draft_and_published
         )
-        import pdb
-        pdb.set_trace()
 
         context.update(
             {
