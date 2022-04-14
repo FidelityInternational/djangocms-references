@@ -56,8 +56,8 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
             template="default",
             alias=alias,
         )
-
         alias_content_type = ContentType.objects.get(app_label="djangocms_alias", model="alias")
+
         references_endpoint = reverse(
             "djangocms_references:references-index",
             kwargs={"content_type_id": alias_content_type.id, "object_id": alias.id}
