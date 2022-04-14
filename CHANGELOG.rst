@@ -6,6 +6,19 @@ Unreleased
 ==========
 * Added filter by latest state
 
+1.2.0 (2022-04-14)
+==================
+* fix: Issue where a plugins name isn't the same as the registered plugin, treating a plugin as an object.
+* feat: Handle references objects that can be deeply nested through model relationships.
+
+1.1.1 (2022-04-11)
+==================
+* Fix: Added Alias list_action monkeypatch for references
+
+1.1.0 (2022-04-06)
+==================
+* Feature: Added Alias configuration
+
 1.0.1 (2022-03-31)
 ==================
 * Fix: Added SVG manifest entry
