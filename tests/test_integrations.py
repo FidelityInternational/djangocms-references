@@ -74,7 +74,9 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
 
 class NestedAppIntegrationTestCase(CMSTestCase):
     def test_nested_app_references(self):
-        """"""
+        """
+        A nested relationship should still be able to provide any references to an object. We ensure that the nested relationship can traverse through and find the reference and its attached page. 
+        """
         poll_content = PollContentFactory()
         poll = poll_content.poll
         nested_poll = NestedPoll.objects.create(poll=poll)
