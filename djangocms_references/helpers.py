@@ -207,20 +207,6 @@ def get_reference_objects_from_plugins(content):
         )
 
 
-def filter_only_draft_and_published(queryset):
-    """If queryset's model is versionable returns only objects in draft
-    and published state. Otherwise, returns the provided queryset.
-
-    :param queryset: A queryset
-    """
-    versionable = get_versionable_for_content(queryset.model)
-    if versionable:
-        from djangocms_versioning.constants import DRAFT, PUBLISHED
-
-        return queryset.filter(versions__state__in=(DRAFT, PUBLISHED))
-    return queryset
-
-
 def combine_querysets_of_same_models(*querysets_list):
     """Given multiple arguments (each being a list of querysets),
     returns a single list of querysets, with querysets being
@@ -261,13 +247,8 @@ def apply_additional_modifiers(queryset):
 
 def apply_filters(queryset, model, state_selected):
     if get_versionable_for_content(model):
-        filtered_queryset = []
-        for query in queryset:
-            version = Version.objects.filter(pk=query.pk)
-            if version.exists():
-                if version.first().state == state_selected:
-                    filtered_queryset.append(query)
-        return filtered_queryset
+        queryset = queryset.filter(versions__state__in=([state_selected]))
+        return queryset
     return queryset
 
 
@@ -283,12 +264,9 @@ def get_all_reference_objects(content, state_selected=None, model=None):
     :param draft_and_published: Set to True if only draft or published
                                 objects should be returned
     """
-    postprocess = partial(map, filter_only_draft_and_published)
     querysets = combine_querysets_of_same_models(
         get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
-    if postprocess:
-        querysets = postprocess(querysets)
     if state_selected != "all":
         querysets = list(apply_filters(qs, model, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
