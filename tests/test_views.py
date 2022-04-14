@@ -158,37 +158,37 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertEqual(response.context["querysets"][0].count(), 1)
         self.assertIn(page_content, response.context["querysets"][0])
 
-    def test_view_draft_and_published(self):
-        poll = PollFactory()
-
-        archived = PageVersionFactory()
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(archived.content),
-            object_id=archived.content.id,
-        )
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-
-        version2 = archived.copy(archived.created_by)
-        version2.publish(archived.created_by)
-        version3 = version2.copy(version2.created_by)
-
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll).pk,
-                    object_id=poll.id,
-                )
-                + "?state=draft_and_published"
-            )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("querysets", response.context)
-
-        # queryset should contain page
-        self.assertEqual(response.context["querysets"][0].count(), 2)
-        self.assertNotIn(archived.content, response.context["querysets"][0])
-        self.assertIn(version2.content, response.context["querysets"][0])
-        self.assertIn(version3.content, response.context["querysets"][0])
+    # def test_view_draft_and_published(self):
+    #     poll = PollFactory()
+    #
+    #     archived = PageVersionFactory()
+    #     placeholder1 = PlaceholderFactory(
+    #         content_type=ContentType.objects.get_for_model(archived.content),
+    #         object_id=archived.content.id,
+    #     )
+    #     add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+    #
+    #     version2 = archived.copy(archived.created_by)
+    #     version2.publish(archived.created_by)
+    #     version3 = version2.copy(version2.created_by)
+    #
+    #     with self.login_user_context(self.superuser):
+    #         response = self.client.get(
+    #             self.get_view_url(
+    #                 content_type_id=ContentType.objects.get_for_model(poll).pk,
+    #                 object_id=poll.id,
+    #             )
+    #             + "?state=draft_and_published"
+    #         )
+    #
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn("querysets", response.context)
+    #
+    #     # queryset should contain page
+    #     self.assertEqual(response.context["querysets"][0].count(), 2)
+    #     self.assertNotIn(archived.content, response.context["querysets"][0])
+    #     self.assertIn(version2.content, response.context["querysets"][0])
+    #     self.assertIn(version3.content, response.context["querysets"][0])
 
     def test_extra_columns(self):
         extra_column = ExtraColumn(lambda o: "{} test".format(o), "Test column")
@@ -201,65 +201,35 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertEqual(response.context["extra_columns"], [extra_column])
 
     def test_view_draft_filter_applied(self):
-        poll = PollFactory()
-
-        archived = PageVersionFactory()
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(archived.content),
-            object_id=archived.content.id,
+        version1 = PageVersionFactory(
+            content__title="test1", content__language=self.language
         )
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        version2 = PageVersionFactory(
+            content__title="test2", content__language=self.language
+        )
+        version2.publish(version2.created_by)
 
-        version2 = archived.copy(archived.created_by)
-        version2.publish(archived.created_by)
-        version3 = version2.copy(version2.created_by)
+        page_content1 = version1.content
+        page_content2 = version2.content
+
+        placeholder1 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content1),
+            object_id=page_content1.id,
+        )
+
+        poll1 = PollFactory()
+        # add poll plugin to page
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
 
         with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll).pk,
-                    object_id=poll.id,
-                )
-                + "?state=draft"
-            )
+            url = self.get_view_url(
+                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
+                    object_id=poll1.id,
+                ) + "?state=draft"
+
+            response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("querysets", response.context)
-        # queryset should contain page
-        self.assertEqual(response.context["querysets"][0].count(), 2)
-        # Published content should not be displayed in the changelist
-        self.assertNotIn(archived.content, response.context["querysets"][0])
-        self.assertIn(version2.content, response.context["querysets"][0])
-        self.assertIn(version3.content, response.context["querysets"][0])
-
-    def test_view_publised_filter_applied(self):
-        poll = PollFactory()
-
-        archived = PageVersionFactory()
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(archived.content),
-            object_id=archived.content.id,
-        )
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-
-        version2 = archived.copy(archived.created_by)
-        version2.publish(archived.created_by)
-        version3 = version2.copy(version2.created_by)
-
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll).pk,
-                    object_id=poll.id,
-                )
-                + "?state=archived"
-            )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("querysets", response.context)
-        # queryset should contain page
-        self.assertEqual(response.context["querysets"][0].count(), 2)
-        # Published content should not be displayed in the changelist
-        self.assertNotIn(archived.content, response.context["querysets"][0])
-        self.assertIn(version2.content, response.context["querysets"][0])
-        self.assertIn(version3.content, response.context["querysets"][0])
+        self.assertEqual(response.context["querysets"][0].count(), 1)
+        self.assertIn(page_content1, response.context["querysets"][0])
+        self.assertNotIn(page_content2, response.context["querysets"][0])
