@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.plugin_base import CMSPlugin
-from cms.plugin_pool import plugin_pool
 
 from djangocms_alias.models import AliasPlugin
 
