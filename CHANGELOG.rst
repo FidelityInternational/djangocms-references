@@ -4,7 +4,7 @@ Changelog
 
 Unreleased
 ==========
-* Fix: Displays page plugin is attached to, rather than plugin in references
+* fix: Issue where a plugins name isn't the same as the registered plugin, treating a plugin as an object.
 * Fix: Handles complex through relationships
 
 1.1.1 (2022-04-11)
