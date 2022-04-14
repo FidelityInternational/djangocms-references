@@ -4,6 +4,9 @@ Changelog
 
 Unreleased
 ==========
+
+1.2.0 (2022-04-14)
+==================
 * fix: Issue where a plugins name isn't the same as the registered plugin, treating a plugin as an object.
 * feat: Handle references objects that can be deeply nested through model relationships.
 
