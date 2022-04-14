@@ -12,6 +12,8 @@ from django.urls import re_path
 from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
+from djangocms_versioning.constants import ARCHIVED, PUBLISHED, UNPUBLISHED
+
 import djangocms_references.urls
 from djangocms_references.datastructures import ExtraColumn
 from djangocms_references.test_utils.factories import (
@@ -21,8 +23,6 @@ from djangocms_references.test_utils.factories import (
     PollContentFactory,
     PollFactory,
 )
-
-from djangocms_versioning.constants import ARCHIVED, PUBLISHED, UNPUBLISHED
 
 
 urlpatterns = [
@@ -232,12 +232,10 @@ class ReferencesViewTestCases(CMSTestCase):
 
             response = self.client.get(url)
 
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
         self.assertNotIn(page_content1, response.context["querysets"][0])
         self.assertIn(page_content2, response.context["querysets"][0])
-
 
     def test_view_archived_filter_applied(self):
         version1 = PageVersionFactory(
@@ -266,7 +264,6 @@ class ReferencesViewTestCases(CMSTestCase):
                 ) + "?state=archived"
 
             response = self.client.get(url)
-
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from functools import lru_cache, partial
+from functools import lru_cache
 from itertools import groupby
 from operator import itemgetter
 
@@ -8,8 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import F, Q
 
 from cms.models import CMSPlugin
-
-from djangocms_versioning.models import Version
 
 
 def get_versionable_for_content(content):
