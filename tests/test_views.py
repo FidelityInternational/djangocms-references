@@ -233,3 +233,37 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertEqual(response.context["querysets"][0].count(), 1)
         self.assertIn(page_content1, response.context["querysets"][0])
         self.assertNotIn(page_content2, response.context["querysets"][0])
+
+    def test_view_published_filter_applied(self):
+        version1 = PageVersionFactory(
+            content__title="test1", content__language=self.language
+        )
+        version2 = PageVersionFactory(
+            content__title="test2", content__language=self.language
+        )
+        version2.publish(version2.created_by)
+
+        page_content1 = version1.content
+        page_content2 = version2.content
+
+        placeholder1 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content1),
+            object_id=page_content1.id,
+        )
+
+        poll1 = PollFactory()
+        # add poll plugin to page
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+
+        with self.login_user_context(self.superuser):
+            url = self.get_view_url(
+                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
+                    object_id=poll1.id,
+                ) + "?state=published"
+
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["querysets"][0].count(), 1)
+        self.assertNotIn(page_content1, response.context["querysets"][0])
+        self.assertIn(page_content2, response.context["querysets"][0])
