@@ -252,7 +252,7 @@ class ReferencesViewTestCases(CMSTestCase):
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
                 )
-                + "?state=published"
+                + "?state=archived"
             )
 
         self.assertEqual(response.status_code, 200)

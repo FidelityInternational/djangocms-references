@@ -9,6 +9,8 @@ from django.db.models import F, Q
 
 from cms.models import CMSPlugin
 
+from djangocms_versioning.models import Version
+
 
 def get_versionable_for_content(content):
     """Returns a VersionableItem for a given content object (or content model).
@@ -259,7 +261,13 @@ def apply_additional_modifiers(queryset):
 
 def apply_filters(queryset, model, state_selected):
     if get_versionable_for_content(model):
-        queryset = model.objects.filter(versions__state__in=[state_selected])
+        filtered_queryset = []
+        for query in queryset:
+            version = Version.objects.filter(pk=query.pk)
+            if version.exists():
+                if version.first().state == state_selected:
+                    filtered_queryset.append(query)
+        return filtered_queryset
     return queryset
 
 
