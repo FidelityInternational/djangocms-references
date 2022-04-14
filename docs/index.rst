@@ -86,6 +86,7 @@ in your addon's folder. The most simple configuration looks like this:
 In this example, ``Answer`` can contain a reference to the ``Poll`` object.
 
 More complex references, as shown below, can also be configured.
+
 .. code-block:: python
 
     # polls/models.py
