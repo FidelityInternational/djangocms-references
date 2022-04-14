@@ -10,8 +10,8 @@ from djangocms_alias.utils import is_versioning_enabled
 
 from djangocms_references.test_utils.factories import PollContentFactory
 from djangocms_references.test_utils.nested_references_app.models import (
-    NestedPoll,
     DeeplyNestedPoll,
+    NestedPoll,
 )
 
 
@@ -99,7 +99,7 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         placeholder = page_content.get_placeholders().get(
             slot="content"
         )
-        nested_reference_plugin = add_plugin(
+        add_plugin(
             placeholder,
             "DeeplyNestedPollPlugin",
             language="en",
