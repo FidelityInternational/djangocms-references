@@ -5,7 +5,7 @@ Changelog
 Unreleased
 ==========
 * fix: Issue where a plugins name isn't the same as the registered plugin, treating a plugin as an object.
-* Fix: Handles complex through relationships
+* feat: Handle references objects that can be deeply nested through model relationships.
 
 1.1.1 (2022-04-11)
 ==================
