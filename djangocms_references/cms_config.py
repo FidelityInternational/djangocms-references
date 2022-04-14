@@ -36,7 +36,8 @@ class ReferencesCMSExtension(CMSAppExtension):
         returns the last model in the relationship
 
         :param model: Target model
-        :param fields: List of fields targetting next model
+        :param fields: List of fields targeting next model
+        :returns: A related model at the end of the relationship
         """
         for validation_field in fields:
             try:
