@@ -125,12 +125,16 @@ class ModifierTestCase(TestCase):
 
 class IntegrationTestCase(TestCase):
     def test_config_with_multiple_apps(self):
-        reference_models = apps.get_app_config(
+        cms_extension = apps.get_app_config(
             "djangocms_references"
-        ).cms_extension.reference_models
-        expected_models = [Alias, Parent, Poll]
+        ).cms_extension
+        reference_models = cms_extension.reference_models
+        reference_plugins = cms_extension.reference_plugins
+        expected_models = [Parent, Poll]
+        expected_plugins = [Alias, Poll]
 
         self.assertCountEqual(reference_models.keys(), expected_models)
+        self.assertCountEqual(reference_plugins.keys(), expected_plugins)
 
 
 class UnpublishDependenciesTestCase(TestCase):
