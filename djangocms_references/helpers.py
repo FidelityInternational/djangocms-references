@@ -243,30 +243,35 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
-def apply_filters(queryset, model, state_selected):
+def apply_filters(queryset, state_selected):
+    """If queryset's model is versionable returns objects in the selected
+     state. Otherwise, returns the provided queryset.
+
+    :param queryset: A queryset
+    :param state_selected: Filter state selected by the user
+    """
     if get_versionable_for_content(queryset.model):
         queryset = queryset.filter(versions__state__in=([state_selected]))
         return queryset
     return queryset
 
 
-def get_all_reference_objects(content, state_selected=None, model=None):
+def get_all_reference_objects(content, state_selected=None):
     """Retrieves related objects (directly related and through plugins),
-    combines the querysets of the same models and applies selected postprocessing
+    combines the querysets of the same models
     functions (currently only filtering by version state).
 
     The end result is a list of querysets of different models,
     that are related to ``content``.
 
     :param content: Content object
-    :param draft_and_published: Set to True if only draft or published
-                                objects should be returned
+    :param state_selected: Filter state selected by the user
     """
     querysets = combine_querysets_of_same_models(
         get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
     if state_selected != "all":
-        querysets = list(apply_filters(qs, model, state_selected) for qs in querysets)
+        querysets = list(apply_filters(qs, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
 

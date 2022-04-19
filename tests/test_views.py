@@ -12,7 +12,12 @@ from django.urls import re_path
 from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from djangocms_versioning.constants import (
+    ARCHIVED,
+    DRAFT,
+    PUBLISHED,
+    UNPUBLISHED,
+)
 
 import djangocms_references.urls
 from djangocms_references.datastructures import ExtraColumn
@@ -309,4 +314,45 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
         self.assertNotIn(page_content1, response.context["querysets"][0])
+        self.assertIn(page_content2, response.context["querysets"][0])
+
+
+    def test_view_no_filter_applied(self):
+        version1 = PageVersionFactory(
+            content__title="test1", content__language=self.language, state=PUBLISHED
+        )
+        version2 = PageVersionFactory(
+            content__title="test2", content__language=self.language, state=DRAFT
+        )
+
+        page_content1 = version1.content
+        page_content2 = version2.content
+
+        placeholder1 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content1),
+            object_id=page_content1.id,
+        )
+
+        placeholder2 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content2),
+            object_id=page_content2.id,
+        )
+
+        poll1 = PollFactory()
+        # add poll plugin to page
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll1, template=0)
+
+        # When all is selected, all entries should be shown
+        admin_endpoint = self.get_view_url(
+            content_type_id=ContentType.objects.get_for_model(poll1).pk,
+            object_id=poll1.id,
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(admin_endpoint)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["querysets"][0].count(), 2)
+        self.assertIn(page_content1, response.context["querysets"][0])
         self.assertIn(page_content2, response.context["querysets"][0])

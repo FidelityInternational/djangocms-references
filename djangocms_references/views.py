@@ -47,9 +47,7 @@ class ReferencesView(TemplateView):
         if selected_state not in str(VERSION_STATES):
             selected_state = "all"
 
-        querysets = get_all_reference_objects(
-            obj, selected_state, model
-        )
+        querysets = get_all_reference_objects(obj, selected_state)
 
         context.update(
             {
