@@ -191,15 +191,21 @@ class ReferencesViewTestCases(CMSTestCase):
             object_id=page_content1.id,
         )
 
-        poll1 = PollFactory()
+        placeholder2 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content2),
+            object_id=page_content2.id,
+        )
+
+        poll = PollFactory()
         # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
 
         # When draft is selected only the draft entries should be shown
         version_selection = f"?state={DRAFT}"
         admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll1).pk,
-            object_id=poll1.id,
+            content_type_id=ContentType.objects.get_for_model(poll).pk,
+            object_id=poll.id,
         )
 
         with self.login_user_context(self.get_superuser()):
@@ -226,16 +232,21 @@ class ReferencesViewTestCases(CMSTestCase):
             object_id=page_content2.id,
         )
 
-        poll1 = PollFactory()
+        placeholder2 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content2),
+            object_id=page_content2.id,
+        )
+
+        poll = PollFactory()
         # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
 
         # When published is selected only the published entries should be shown
         version_selection = f"?state={PUBLISHED}"
         admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll1).pk,
-            object_id=poll1.id,
+            content_type_id=ContentType.objects.get_for_model(poll).pk,
+            object_id=poll.id,
         )
 
         with self.login_user_context(self.get_superuser()):
@@ -262,15 +273,21 @@ class ReferencesViewTestCases(CMSTestCase):
             object_id=page_content2.id,
         )
 
-        poll1 = PollFactory()
+        placeholder2 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content2),
+            object_id=page_content2.id,
+        )
+
+        poll = PollFactory()
         # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
 
         # When archived is selected only the archived entries should be shown
         version_selection = f"?state={ARCHIVED}"
         admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll1).pk,
-            object_id=poll1.id,
+            content_type_id=ContentType.objects.get_for_model(poll).pk,
+            object_id=poll.id,
         )
 
         with self.login_user_context(self.get_superuser()):
@@ -297,15 +314,21 @@ class ReferencesViewTestCases(CMSTestCase):
             object_id=page_content2.id,
         )
 
-        poll1 = PollFactory()
+        placeholder2 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content2),
+            object_id=page_content2.id,
+        )
+
+        poll = PollFactory()
         # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
 
         # When unpublished is selected only the unpublished entries should be shown
         version_selection = f"?state={UNPUBLISHED}"
         admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll1).pk,
-            object_id=poll1.id,
+            content_type_id=ContentType.objects.get_for_model(poll).pk,
+            object_id=poll.id,
         )
 
         with self.login_user_context(self.get_superuser()):
@@ -323,9 +346,17 @@ class ReferencesViewTestCases(CMSTestCase):
         version2 = PageVersionFactory(
             content__title="test2", content__language=self.language, state=DRAFT
         )
+        version3 = PageVersionFactory(
+            content__title="test3", content__language=self.language, state=ARCHIVED
+        )
+        version4 = PageVersionFactory(
+            content__title="test3", content__language=self.language, state=UNPUBLISHED
+        )
 
         page_content1 = version1.content
         page_content2 = version2.content
+        page_content3 = version3.content
+        page_content4 = version4.content
 
         placeholder1 = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_content1),
@@ -337,22 +368,36 @@ class ReferencesViewTestCases(CMSTestCase):
             object_id=page_content2.id,
         )
 
-        poll1 = PollFactory()
+        placeholder3 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content3),
+            object_id=page_content3.id,
+        )
+
+        placeholder4 = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_content4),
+            object_id=page_content4.id,
+        )
+
+        poll = PollFactory()
         # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll1, template=0)
+        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder3, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(placeholder4, "PollPlugin", "en", poll=poll, template=0)
 
         # When all filter is selected, all entries should be shown
         version_selection = "?state=all"
         admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll1).pk,
-            object_id=poll1.id,
+            content_type_id=ContentType.objects.get_for_model(poll).pk,
+            object_id=poll.id,
         )
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 2)
+        self.assertEqual(response.context["querysets"][0].count(), 4)
         self.assertIn(page_content1, response.context["querysets"][0])
         self.assertIn(page_content2, response.context["querysets"][0])
+        self.assertIn(page_content3, response.context["querysets"][0])
+        self.assertIn(page_content4, response.context["querysets"][0])
