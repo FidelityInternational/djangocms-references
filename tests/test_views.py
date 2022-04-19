@@ -342,14 +342,15 @@ class ReferencesViewTestCases(CMSTestCase):
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
         add_plugin(placeholder2, "PollPlugin", "en", poll=poll1, template=0)
 
-        # When all is selected, all entries should be shown
+        # When all filter is selected, all entries should be shown
+        version_selection = f"?state=all"
         admin_endpoint = self.get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll1).pk,
             object_id=poll1.id,
         )
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint)
+            response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 2)
