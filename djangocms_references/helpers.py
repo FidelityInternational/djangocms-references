@@ -244,7 +244,7 @@ def apply_additional_modifiers(queryset):
 
 
 def apply_filters(queryset, model, state_selected):
-    if get_versionable_for_content(model):
+    if get_versionable_for_content(queryset.model):
         queryset = queryset.filter(versions__state__in=([state_selected]))
         return queryset
     return queryset
