@@ -4,6 +4,8 @@ from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 
+from djangocms_versioning.constants import VERSION_STATES
+
 from .helpers import get_all_reference_objects, get_extra_columns
 from .models import References
 
@@ -40,19 +42,21 @@ class ReferencesView(TemplateView):
         except model.DoesNotExist:
             raise Http404
 
-        draft_and_published = self.request.GET.get("state") == "draft_and_published"
+        selected_state = self.request.GET.get("state", 'all')
 
-        querysets = get_all_reference_objects(
-            obj, draft_and_published=draft_and_published
-        )
+        if selected_state not in str(VERSION_STATES):
+            selected_state = "all"
+
+        querysets = get_all_reference_objects(obj, selected_state)
 
         context.update(
             {
                 "title": _("References of {object}").format(object=obj),
                 "opts": model._meta,
                 "querysets": querysets,
-                "draft_and_published": draft_and_published,
+                "selected_state": selected_state,
                 "extra_columns": extra_columns,
+                "version_states": VERSION_STATES
             }
         )
         return context

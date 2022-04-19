@@ -85,6 +85,37 @@ in your addon's folder. The most simple configuration looks like this:
 
 In this example, ``Answer`` can contain a reference to the ``Poll`` object.
 
+More complex references, as shown below, can also be configured.
+
+.. code-block:: python
+
+    # polls/models.py
+    from django.db import models
+
+    class Poll(models.Model):
+        pass
+
+    class Question(models.Model):
+        text = models.CharField(max_length=255)
+        poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+
+    class Answer(models.Model):
+        question = models.ForeignKey(Question, on_delete=models.CASCADE)
+        is_correct = models.BooleanField(default=False)
+
+.. code-block:: python
+
+    # polls/cms_config.py
+    from cms.app_base import CMSAppConfig
+
+    class PollsAppConfig(CMSAppConfig):
+        djangocms_references_enabled = True
+        reference_fields = [
+            (Answer, 'question__poll'),
+        ]
+In this example, Answer relates to Poll via Question,
+and therefore we describe the through field in the cms config.
+
 :py:class:`CMSAppConfig`
 
     :py:attr:`~djangocms_references_enabled`
