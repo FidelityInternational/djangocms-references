@@ -9,11 +9,10 @@ from django.test import TestCase
 from cms.api import add_plugin
 
 from djangocms_references import helpers
-from djangocms_references.compat import DJANGO_GTE_21, VERSIONING_INSTALLED
+from djangocms_references.compat import DJANGO_GTE_21
 from djangocms_references.helpers import (
     _get_reference_models,
     combine_querysets_of_same_models,
-    filter_only_draft_and_published,
     get_all_reference_objects,
     get_extension,
     get_filters,
@@ -179,26 +178,6 @@ class GetReferenceObjectsTestCase(TestCase):
         querysets = list(get_reference_objects_from_plugins(poll))
         self.assertEqual(len(querysets), 1)
         self.assertIn(page_content, querysets[0])
-
-
-class FilterOnlyDraftAndPublishedTestCase(TestCase):
-    @skipIf(not VERSIONING_INSTALLED, "Versioning not installed")
-    def test_filter_only_draft_and_published_is_versioned(self):
-        from djangocms_versioning.constants import DRAFT, PUBLISHED
-
-        expected = Mock()
-        mock = Mock(filter=Mock(return_value=expected))
-        with patch.object(helpers, "get_versionable_for_content", return_value=True):
-            result = filter_only_draft_and_published(mock)
-            mock.filter.assert_called_once_with(versions__state__in=(DRAFT, PUBLISHED))
-            self.assertEqual(expected, result)
-
-    def test_filter_only_draft_and_published_is_not_versioned(self):
-        mock = Mock()
-        with patch.object(helpers, "get_versionable_for_content", return_value=False):
-            result = filter_only_draft_and_published(mock)
-            mock.filter.assert_not_called()
-            self.assertEqual(mock, result)
 
 
 class CombineQuerysetsTestCase(TestCase):

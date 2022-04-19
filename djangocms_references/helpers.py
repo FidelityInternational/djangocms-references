@@ -1,5 +1,5 @@
 from collections import defaultdict
-from functools import lru_cache, partial
+from functools import lru_cache
 from itertools import groupby
 from operator import itemgetter
 
@@ -205,20 +205,6 @@ def get_reference_objects_from_plugins(content):
         )
 
 
-def filter_only_draft_and_published(queryset):
-    """If queryset's model is versionable returns only objects in draft
-    and published state. Otherwise, returns the provided queryset.
-
-    :param queryset: A queryset
-    """
-    versionable = get_versionable_for_content(queryset.model)
-    if versionable:
-        from djangocms_versioning.constants import DRAFT, PUBLISHED
-
-        return queryset.filter(versions__state__in=(DRAFT, PUBLISHED))
-    return queryset
-
-
 def combine_querysets_of_same_models(*querysets_list):
     """Given multiple arguments (each being a list of querysets),
     returns a single list of querysets, with querysets being
@@ -257,26 +243,35 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
-def get_all_reference_objects(content, draft_and_published=False):
+def apply_filters(queryset, state_selected):
+    """If queryset's model is versionable returns objects in the selected
+     state. Otherwise, returns the provided queryset.
+
+    :param queryset: A queryset
+    :param state_selected: Filter state selected by the user
+    """
+    if get_versionable_for_content(queryset.model):
+        queryset = queryset.filter(versions__state__in=([state_selected]))
+        return queryset
+    return queryset
+
+
+def get_all_reference_objects(content, state_selected=None):
     """Retrieves related objects (directly related and through plugins),
-    combines the querysets of the same models and applies selected postprocessing
+    combines the querysets of the same models
     functions (currently only filtering by version state).
 
     The end result is a list of querysets of different models,
     that are related to ``content``.
 
     :param content: Content object
-    :param draft_and_published: Set to True if only draft or published
-                                objects should be returned
+    :param state_selected: Filter state selected by the user
     """
-    postprocess = None
-    if draft_and_published:
-        postprocess = partial(map, filter_only_draft_and_published)
     querysets = combine_querysets_of_same_models(
         get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
-    if postprocess:
-        querysets = postprocess(querysets)
+    if state_selected != "all":
+        querysets = list(apply_filters(qs, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
 

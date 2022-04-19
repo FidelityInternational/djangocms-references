@@ -17,12 +17,22 @@
       <h2>{% trans "Filter" %}</h2>
       <h3>{% trans "By version state" %}</h3>
       <ul>
-        <li{% if not draft_and_published %} class="selected"{% endif %}>
+      {% if selected_state == "all" %}
+        <li class="selected">
+      {% else %}
+        <li>
+      {% endif %}
           <a href="?state=all" title="{% trans "All" %}">{% trans "All" %}</a>
         </li>
-        <li{% if draft_and_published %} class="selected"{% endif %}>
-          <a href="?state=draft_and_published" title="{% trans "Draft or published" %}">{% trans "Draft or published" %}</a>
-        </li>
+          {% for key, val in version_states %}
+              {% if selected_state == val %}
+                <li class="selected">
+              {% else %}
+                <li>
+              {% endif %}
+              <a href="?state={{ key }}" title="{% trans  val  %}">{% trans val %}</a>
+            </li>
+          {% endfor %}
       </ul>
     </div>
     <div id="changelist-form">
