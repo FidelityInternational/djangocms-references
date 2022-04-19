@@ -12,7 +12,7 @@ from django.urls import re_path
 from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.constants import ARCHIVED, PUBLISHED, UNPUBLISHED
+from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 
 import djangocms_references.urls
 from djangocms_references.datastructures import ExtraColumn
@@ -190,13 +190,15 @@ class ReferencesViewTestCases(CMSTestCase):
         # add poll plugin to page
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
 
-        with self.login_user_context(self.superuser):
-            url = self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
-                    object_id=poll1.id,
-                ) + "?state=draft"
+        # When draft is selected only the draft entries should be shown
+        version_selection = f"?state={DRAFT}"
+        admin_endpoint = self.get_view_url(
+            content_type_id=ContentType.objects.get_for_model(poll1).pk,
+            object_id=poll1.id,
+        )
 
-            response = self.client.get(url)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
@@ -224,13 +226,15 @@ class ReferencesViewTestCases(CMSTestCase):
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
 
-        with self.login_user_context(self.superuser):
-            url = self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
-                    object_id=poll1.id,
-                ) + "?state=published"
+        # When published is selected only the published entries should be shown
+        version_selection = f"?state={PUBLISHED}"
+        admin_endpoint = self.get_view_url(
+            content_type_id=ContentType.objects.get_for_model(poll1).pk,
+            object_id=poll1.id,
+        )
 
-            response = self.client.get(url)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
@@ -257,13 +261,15 @@ class ReferencesViewTestCases(CMSTestCase):
         # add poll plugin to page
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
 
-        with self.login_user_context(self.superuser):
-            url = self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
-                    object_id=poll1.id,
-                ) + "?state=archived"
+        # When archived is selected only the archived entries should be shown
+        version_selection = f"?state={ARCHIVED}"
+        admin_endpoint = self.get_view_url(
+            content_type_id=ContentType.objects.get_for_model(poll1).pk,
+            object_id=poll1.id,
+        )
 
-            response = self.client.get(url)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
@@ -290,13 +296,15 @@ class ReferencesViewTestCases(CMSTestCase):
         # add poll plugin to page
         add_plugin(placeholder1, "PollPlugin", "en", poll=poll1, template=0)
 
-        with self.login_user_context(self.superuser):
-            url = self.get_view_url(
-                    content_type_id=ContentType.objects.get_for_model(poll1).pk,
-                    object_id=poll1.id,
-                ) + "?state=unpublised"
+        # When unpublished is selected only the unpublished entries should be shown
+        version_selection = f"?state={UNPUBLISHED}"
+        admin_endpoint = self.get_view_url(
+            content_type_id=ContentType.objects.get_for_model(poll1).pk,
+            object_id=poll1.id,
+        )
 
-            response = self.client.get(url)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["querysets"][0].count(), 1)
