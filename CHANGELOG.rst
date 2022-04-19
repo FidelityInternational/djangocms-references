@@ -4,7 +4,7 @@ Changelog
 
 Unreleased
 ==========
-* Added filter by latest state
+* feat: Added filter by latest state
 
 1.2.0 (2022-04-14)
 ==================
