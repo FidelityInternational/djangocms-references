@@ -316,7 +316,6 @@ class ReferencesViewTestCases(CMSTestCase):
         self.assertNotIn(page_content1, response.context["querysets"][0])
         self.assertIn(page_content2, response.context["querysets"][0])
 
-
     def test_view_no_filter_applied(self):
         version1 = PageVersionFactory(
             content__title="test1", content__language=self.language, state=PUBLISHED
