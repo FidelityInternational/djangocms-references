@@ -138,6 +138,7 @@ class VersioningIntegrationTestCase(CMSTestCase):
         version = PageVersionFactory(
             content__title="test", content__language="en", state=PUBLISHED
         )
+
         # Changing version state to unpublished
         version.unpublish(user)
 
