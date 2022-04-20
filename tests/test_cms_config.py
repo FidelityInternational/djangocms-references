@@ -154,7 +154,7 @@ class UnpublishDependenciesTestCase(TestCase):
         html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
-            version.content, draft_and_published=True
+            version.content, state_selected=False
         )
         # NOTE: This is not an extensive test of the html, but testing for
         # exact html will likely be a pain later (making this test
@@ -176,7 +176,7 @@ class UnpublishDependenciesTestCase(TestCase):
         html = cms_config.unpublish_dependencies(request, version)
 
         mocked_references.assert_called_once_with(
-            version.content, draft_and_published=True
+            version.content, state_selected=False
         )
         self.assertIn("There are no related objects", html)
 
