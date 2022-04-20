@@ -270,7 +270,7 @@ def get_all_reference_objects(content, state_selected=False):
     querysets = combine_querysets_of_same_models(
         get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
-    if state_selected and state_selected != "all" :
+    if state_selected and state_selected != "all":
         querysets = list(apply_filters(qs, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
