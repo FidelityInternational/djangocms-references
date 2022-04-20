@@ -7,14 +7,16 @@ from cms.toolbar.utils import get_object_preview_url
 
 from djangocms_alias.models import Alias as AliasModel, AliasContent, Category
 from djangocms_alias.utils import is_versioning_enabled
+from djangocms_versioning.constants import PUBLISHED, UNPUBLISHED
 
-from djangocms_references.test_utils.factories import PageVersionFactory, PollContentFactory
+from djangocms_references.test_utils.factories import (
+    PageVersionFactory,
+    PollContentFactory,
+)
 from djangocms_references.test_utils.nested_references_app.models import (
     DeeplyNestedPoll,
     NestedPoll,
 )
-
-from djangocms_versioning.constants import PUBLISHED, UNPUBLISHED
 
 
 class AliasReferencesIntegrationTestCase(CMSTestCase):
@@ -141,4 +143,3 @@ class VersioningIntegrationTestCase(CMSTestCase):
 
         # Version state should be unpublished
         self.assertEqual(version.state, UNPUBLISHED)
-
