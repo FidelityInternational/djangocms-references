@@ -127,20 +127,3 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         self.assertContains(response, "pagecontent")
         self.assertContains(response, get_object_preview_url(page_content))
         self.assertContains(response, page_content.versions.first().state)
-
-
-class VersioningIntegrationTestCase(CMSTestCase):
-    def test_unpublish_versioned_item(self):
-        """
-        When unpublishing a versioned item, the state should be changed to unpublish
-        """
-        user = self.get_superuser()
-        version = PageVersionFactory(
-            content__title="test", content__language="en", state=PUBLISHED
-        )
-
-        # Changing version state to unpublished
-        version.unpublish(user)
-
-        # Version state should be unpublished
-        self.assertEqual(version.state, UNPUBLISHED)
