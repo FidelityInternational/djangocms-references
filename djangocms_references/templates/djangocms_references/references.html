@@ -25,7 +25,7 @@
           <a href="?state=all" title="{% trans "All" %}">{% trans "All" %}</a>
         </li>
           {% for key, val in version_states %}
-              {% if selected_state == val %}
+              {% if selected_state == key %}
                 <li class="selected">
               {% else %}
                 <li>

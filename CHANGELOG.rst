@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Filter state highlighted when selected
 
 1.3.0 (2022-04-19)
 ==================
