@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Unpublish parameter updated to use state_selected
 
 1.3.1 (2022-04-25)
 ==================

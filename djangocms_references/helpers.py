@@ -256,7 +256,7 @@ def apply_filters(queryset, state_selected):
     return queryset
 
 
-def get_all_reference_objects(content, state_selected=None):
+def get_all_reference_objects(content, state_selected=False):
     """Retrieves related objects (directly related and through plugins),
     combines the querysets of the same models
     functions (currently only filtering by version state).
@@ -270,7 +270,7 @@ def get_all_reference_objects(content, state_selected=None):
     querysets = combine_querysets_of_same_models(
         get_reference_objects(content), get_reference_objects_from_plugins(content)
     )
-    if state_selected != "all":
+    if state_selected and state_selected != "all":
         querysets = list(apply_filters(qs, state_selected) for qs in querysets)
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
