@@ -164,4 +164,7 @@ class ReferencesCMSAppConfig(CMSAppConfig):
         "unpublish": {"unpublish_dependencies": unpublish_dependencies}
     }
     # Versioning filer compat
-
+    djangocms_versioning_filer_enabled = True
+    djangocms_versioning_filer_file_changelist_actions = [
+        "djangocms_versioning_filer/admin/action_buttons/show_references.html"
+    ]
