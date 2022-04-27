@@ -1,0 +1,5 @@
+{% load i18n %}
+
+{% get_versioning_filer_references_url file as references_url %}
+<a href="{{ references_url }}"
+    title="{% blocktrans %}Show references{% endblocktrans %}" class="action-button"><span class="fa fa-code-fork"></span></a>

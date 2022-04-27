@@ -163,3 +163,5 @@ class ReferencesCMSAppConfig(CMSAppConfig):
     versioning_add_to_confirmation_context = {
         "unpublish": {"unpublish_dependencies": unpublish_dependencies}
     }
+    # Versioning filer compat
+
