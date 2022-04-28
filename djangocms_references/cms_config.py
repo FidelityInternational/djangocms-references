@@ -11,7 +11,6 @@ from cms.plugin_base import CMSPlugin
 
 from djangocms_alias.models import AliasPlugin
 
-
 from .datastructures import ExtraColumn
 from .helpers import (
     get_all_reference_objects,
