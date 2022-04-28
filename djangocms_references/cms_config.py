@@ -153,6 +153,7 @@ class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_versioning_enabled = getattr(
         settings, "DJANGOCMS_REFERENCES_VERSIONING_ENABLED", True
     )
+    reference_fields = [(AliasPlugin, 'alias')]
     reference_list_extra_columns = [
         (version_attr(lambda v: v.get_state_display()), _("Status")),
         (version_attr(lambda v: v.created_by), _("Author")),
@@ -166,8 +167,4 @@ class ReferencesCMSAppConfig(CMSAppConfig):
     djangocms_versioning_filer_enabled = True
     djangocms_versioning_filer_file_changelist_actions = [
         "djangocms_versioning_filer/admin/action_buttons/show_references.html"
-    ]
-
-    reference_fields = [
-        (AliasPlugin, 'alias'),
     ]
