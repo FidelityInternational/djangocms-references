@@ -5,6 +5,10 @@ Changelog
 Unreleased
 ==========
 
+1.4.0 (2022-04-28)
+==================
+* feat: djangocms-versioning-filer admin actions integration
+
 1.3.2 (2022-04-26)
 ==================
 * fix: Unpublish parameter updated to use state_selected
