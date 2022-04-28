@@ -9,3 +9,4 @@ tox
 https://github.com/django-cms/django-cms/tarball/develop-4#egg=django-cms
 https://github.com/django-cms/djangocms-versioning/tarball/master#egg=djangocms-versioning
 https://github.com/django-cms/djangocms-alias/tarball/master#egg=djangocms-alias
+https://github.com/Aiky30/djangocms-versioning-filer/tarball/feature/add-customisable-admin-action-buttons#egg=djangocms-versioning-filer

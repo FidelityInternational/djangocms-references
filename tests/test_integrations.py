@@ -123,3 +123,19 @@ class NestedAppIntegrationTestCase(CMSTestCase):
         self.assertContains(response, "pagecontent")
         self.assertContains(response, get_object_preview_url(page_content))
         self.assertContains(response, page_content.versions.first().state)
+
+from djangocms_versioning_filer.test_utils.base import BaseFilerVersioningTestCase
+
+class VersioningFilerIntegrationTestCase(BaseFilerVersioningTestCase):
+    def test_admin_action_integration(self):
+        """
+        When djangocms-versioning-filer is installed an action for references is
+        automatically added
+        """
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                reverse('admin:filer-directory_listing', kwargs={'folder_id': self.folder.id}),
+            )
+
+        # Manage versions is added via the configuration
+        self.assertContains(response, "Manage versions")
