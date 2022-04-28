@@ -11,7 +11,6 @@ from cms.plugin_base import CMSPlugin
 
 from djangocms_alias.models import AliasPlugin
 
-from djangocms_versioning_filer.plugins.file.models import VersionedFile
 
 from .datastructures import ExtraColumn
 from .helpers import (
@@ -172,5 +171,4 @@ class ReferencesCMSAppConfig(CMSAppConfig):
 
     reference_fields = [
         (AliasPlugin, 'alias'),
-        (VersionedFile, 'file_grouper'),
     ]
