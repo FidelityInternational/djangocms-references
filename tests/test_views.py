@@ -240,8 +240,8 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
-            response.context["querysets"],
-            [],
+            response.context["querysets"][0],
+            [page_1_version_2.content.pk],
             transform=lambda x: x.pk,
             ordered=False,
         )
