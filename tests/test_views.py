@@ -36,6 +36,13 @@ urlpatterns = [
 ]
 
 
+def get_view_url(content_type_id, object_id):
+    return reverse(
+        "djangocms_references:references-index",
+        kwargs={"content_type_id": content_type_id, "object_id": object_id},
+    )
+
+
 @override_settings(ROOT_URLCONF=__name__)
 class ReferencesViewTestCases(CMSTestCase):
     def setUp(self):
@@ -43,14 +50,8 @@ class ReferencesViewTestCases(CMSTestCase):
         self.superuser = self.get_superuser()
         self.page = PageContentFactory()
         self.content = ContentType.objects.get_for_model(self.page)
-        self.view_url = self.get_view_url(self.content.pk, self.page.id)
+        self.view_url = get_view_url(self.content.pk, self.page.id)
         self.language = "en"
-
-    def get_view_url(self, content_type_id, object_id):
-        return reverse(
-            "djangocms_references:references-index",
-            kwargs={"content_type_id": content_type_id, "object_id": object_id},
-        )
 
     def test_view_endpoint_access_with_anonymous_user(self):
         response = self.client.get(self.view_url)
@@ -92,14 +93,14 @@ class ReferencesViewTestCases(CMSTestCase):
     def test_view_invalid_content_type(self):
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(content_type_id=0, object_id=1)
+                get_view_url(content_type_id=0, object_id=1)
             )
         self.assertEqual(response.status_code, 404)
 
     def test_view_invalid_object(self):
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(content_type_id=self.content.id, object_id=0)
+                get_view_url(content_type_id=self.content.id, object_id=0)
             )
         self.assertEqual(response.status_code, 404)
 
@@ -118,7 +119,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(
+                get_view_url(
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
                 )
@@ -152,7 +153,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(
+                get_view_url(
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
                 )
@@ -175,35 +176,61 @@ class ReferencesViewTestCases(CMSTestCase):
 
         self.assertEqual(response.context["extra_columns"], [extra_column])
 
+
+@override_settings(ROOT_URLCONF=__name__)
+class ReferencesViewVersionFilterTestCases(CMSTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.superuser = self.get_superuser()
+        self.page = PageContentFactory()
+        self.content = ContentType.objects.get_for_model(self.page)
+        self.view_url = get_view_url(self.content.pk, self.page.id)
+        self.language = "en"
+
     def test_view_draft_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language
+        poll = PollFactory()
+        # Page 1 has 2 versions
+        # Latest version is DRAFT, previous version is UNPUBLISHED
+        page_1_version_1 = PageVersionFactory(
+            content__title="test1", content__language=self.language, state=UNPUBLISHED
         )
-        version2 = PageVersionFactory(
+        page_1_version_1_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_1.content),
+            object_id=page_1_version_1.content.id,
+        )
+        add_plugin(page_1_version_1_placeholder, "PollPlugin", "en", poll=poll)
+        page_1_version_2 = PageVersionFactory(
+            content__page=page_1_version_1.content.page,
+            content__title="test1", content__language=self.language, state=DRAFT
+        )
+        page_1_version_2_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_2.content),
+            object_id=page_1_version_2.content.id,
+        )
+        add_plugin(page_1_version_2_placeholder, "PollPlugin", "en", poll=poll)
+        # Page 2 has 2 versions
+        # Latest version is PUBLISHED, previous version is DRAFT
+        page_2_version_1 = PageVersionFactory(
+            content__title="test2", content__language=self.language, state=DRAFT
+        )
+        page_2_version_1_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_1.content),
+            object_id=page_2_version_1.content.id,
+        )
+        add_plugin(page_2_version_1_placeholder, "PollPlugin", "en", poll=poll)
+        page_2_version_2 = PageVersionFactory(
+            content__page=page_2_version_1.content.page,
             content__title="test2", content__language=self.language, state=PUBLISHED
         )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content1),
-            object_id=page_content1.id,
+        page_2_version_2_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_2.content),
+            object_id=page_2_version_2.content.id,
         )
-
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
+        add_plugin(page_2_version_2_placeholder, "PollPlugin", "en", poll=poll)
 
         # When draft is selected only the draft entries should be shown
         version_selection = f"?state={DRAFT}"
-        admin_endpoint = self.get_view_url(
+        admin_endpoint = get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll).pk,
             object_id=poll.id,
         )
@@ -212,9 +239,12 @@ class ReferencesViewTestCases(CMSTestCase):
             response = self.client.get(admin_endpoint + version_selection)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 1)
-        self.assertIn(page_content1, response.context["querysets"][0])
-        self.assertNotIn(page_content2, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"],
+            [],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_published_filter_applied(self):
         version1 = PageVersionFactory(
@@ -244,7 +274,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         # When published is selected only the published entries should be shown
         version_selection = f"?state={PUBLISHED}"
-        admin_endpoint = self.get_view_url(
+        admin_endpoint = get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll).pk,
             object_id=poll.id,
         )
@@ -285,7 +315,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         # When archived is selected only the archived entries should be shown
         version_selection = f"?state={ARCHIVED}"
-        admin_endpoint = self.get_view_url(
+        admin_endpoint = get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll).pk,
             object_id=poll.id,
         )
@@ -326,7 +356,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         # When unpublished is selected only the unpublished entries should be shown
         version_selection = f"?state={UNPUBLISHED}"
-        admin_endpoint = self.get_view_url(
+        admin_endpoint = get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll).pk,
             object_id=poll.id,
         )
@@ -387,7 +417,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         # When all filter is selected, all entries should be shown
         version_selection = "?state=all"
-        admin_endpoint = self.get_view_url(
+        admin_endpoint = get_view_url(
             content_type_id=ContentType.objects.get_for_model(poll).pk,
             object_id=poll.id,
         )
