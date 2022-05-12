@@ -188,13 +188,13 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             object_id=self.poll.id,
         )
 
-    def _create_data_set_for_latest_versions(self, version_state_1, version_state_2, filter_applied=True):
+    def _create_data_set_for_latest_versions(self, version_state_1, version_state_2, filter_applied=None):
         language_1 = "en"
         language_2 = "de"
 
-        # FIXME: Should be relabeled to be more generic
-        # Latest version is DRAFT for en and de languages, previous versions are PUBLISHED
-        # With a draft filter both should be found
+        # Page 1 has 4 versions
+        # Latest version uses the supplied version_state_1 for en and de languages, previous
+        # versions use the supplied version_state_2
         page_1_version_1 = PageVersionFactory(
             content__language=language_1, state=version_state_1
         )
@@ -233,10 +233,12 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         )
         add_plugin(page_1_version_4_placeholder, "PollPlugin", language_2, poll=self.poll)
 
-        # FIXME: Should be relabeled to be more generic
         # Page 2 has 4 versions
-        # Latest version is PUBLISHED for en and de languages, previous versions are DRAFT
-        # With a draft filter neither should be found
+        # Latest version uses the supplied version_state_2 for en and de languages, previous
+        # versions use the supplied version_state_1. This is the opposite arrangement to the
+        # versions created above.
+        # by using the opposite state filter neither should be found because the "latest"
+        # versions are not the same as the filter set.
         page_2_version_1 = PageVersionFactory(
             content__language=language_1, state=version_state_2
         )
@@ -294,14 +296,15 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         """
         When draft is selected only the draft entries should be shown
         """
+        filter_applied = DRAFT
         latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=PUBLISHED,
-            version_state_2=DRAFT
+            version_state_2=DRAFT,
+            filter_applied=filter_applied,
         )
-        version_selection = f"?state={DRAFT}"
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(self.admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
@@ -315,14 +318,15 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         """
         When published is selected only the published entries should be shown
         """
+        filter_applied = PUBLISHED
         latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
-            version_state_2=PUBLISHED
+            version_state_2=PUBLISHED,
+            filter_applied=filter_applied,
         )
-        version_selection = f"?state={PUBLISHED}"
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(self.admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
@@ -336,14 +340,15 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         """
         When archived is selected only the archived entries should be shown
         """
+        filter_applied = ARCHIVED
         latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
-            version_state_2=ARCHIVED
+            version_state_2=ARCHIVED,
+            filter_applied=filter_applied,
         )
-        version_selection = f"?state={ARCHIVED}"
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(self.admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
@@ -357,14 +362,15 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         """
         When unpublished is selected only the unpublished entries should be shown
         """
+        filter_applied = UNPUBLISHED
         latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
-            version_state_2=UNPUBLISHED
+            version_state_2=UNPUBLISHED,
+            filter_applied=filter_applied,
         )
-        version_selection = f"?state={UNPUBLISHED}"
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(self.admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
@@ -381,27 +387,36 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         draft_latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=PUBLISHED,
             version_state_2=DRAFT,
-            filter_applied=False,
         )
         published_latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
             version_state_2=PUBLISHED,
-            filter_applied=False,
         )
         archived_latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
             version_state_2=ARCHIVED,
-            filter_applied=False,
         )
         unpublished_latest_versions = self._create_data_set_for_latest_versions(
             version_state_1=DRAFT,
             version_state_2=UNPUBLISHED,
-            filter_applied=False,
         )
-        version_selection = "?state=all"
 
+        # Try with all state set
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(self.admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + "?state=all")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            draft_latest_versions + published_latest_versions +
+            archived_latest_versions + unpublished_latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
+
+        # Try again with no state set
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.admin_endpoint)
 
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(

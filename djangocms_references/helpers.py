@@ -22,7 +22,14 @@ def _get_latest_version_for_grouping_values(versionable, content):
     return grouper_contents.last().versions.first()
 
 
-def _get_latest_versions(versionable, queryset):
+def _get_latest_versions_by_grouping_values(versionable, queryset):
+    """Find all of a groupers versions, filter the supplied queryset
+    to ensure that only the latest version is supplied.
+
+    :param versionable: VersionableItem
+    :param queryset: A queryset
+    :returns: A queryset
+    """
     exclusion_list = []
     for content in queryset:
         current_version = content.versions.first()
@@ -270,14 +277,17 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
-def get_latest_versions(queryset):
-    """TODO
+def get_latest_versions_by_grouping_values(queryset):
+    """Filter the supplied queryset to ensure that only the latest version is supplied.
+    Only relevant for versioned objects that have the ability to have multiple copies
+    of content.
 
     :param queryset: A queryset
+    :returns: A queryset
     """
     versionable = get_versionable_for_content(queryset.model)
     if versionable:
-        return _get_latest_versions(versionable, queryset)
+        return _get_latest_versions_by_grouping_values(versionable, queryset)
     return queryset
 
 
@@ -311,7 +321,8 @@ def get_all_reference_objects(content, state_selected=False):
     if state_selected and state_selected != "all":
         querysets = list(apply_filters(qs, state_selected) for qs in querysets)
 
-    querysets = list(get_latest_versions(qs) for qs in querysets)
+    # Ensure only the latest versions are displayed
+    querysets = list(get_latest_versions_by_grouping_values(qs) for qs in querysets)
 
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
