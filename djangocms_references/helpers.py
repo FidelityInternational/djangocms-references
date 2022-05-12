@@ -10,7 +10,7 @@ from django.db.models import F, Q
 from cms.models import CMSPlugin
 
 
-def _get_latest_version_for_grouper(versionable, content):
+def _get_latest_version_for_grouping_values(versionable, content):
     """Finds the latest version for a content object using the
     grouper and grouper filtering values.
 
@@ -18,9 +18,7 @@ def _get_latest_version_for_grouper(versionable, content):
     :param content: A content object
     :returns: A Version object, or None
     """
-    grouper = getattr(content, versionable.grouper_field_name)
-    # grouping_values = versionable.version_list_filter_lookups
-    grouper_contents = versionable.for_grouper(grouper)
+    grouper_contents = versionable.for_content_grouping_values(content)
     return grouper_contents.last().versions.first()
 
 
@@ -28,7 +26,7 @@ def _enforce_latest_version(versionable, queryset):
     exclusion_list = []
     for content in queryset:
         current_version = content.versions.first()
-        latest_version = _get_latest_version_for_grouper(versionable, content)
+        latest_version = _get_latest_version_for_grouping_values(versionable, content)
 
         if latest_version != current_version:
             exclusion_list.append(content.pk)
