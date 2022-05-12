@@ -127,7 +127,8 @@ def _get_reference_objects(content, models_func):
     """
     for reference in models_func(content.__class__):
         model, lookups = reference
-        qs = model.objects.filter(get_filters(content, lookups))
+        filters = get_filters(content, lookups)
+        qs = model.objects.filter(filters)
         if qs.exists():
             yield qs
 
@@ -250,9 +251,29 @@ def apply_filters(queryset, state_selected):
     :param queryset: A queryset
     :param state_selected: Filter state selected by the user
     """
-    if get_versionable_for_content(queryset.model):
+    versionable = get_versionable_for_content(queryset.model)
+    if versionable:
+
+        """
+        _get_latest_version_for_grouper
+        For each item
+            get grouping values for queryset.model
+            Is this the latest version for this grouper (with grouping values)
+            
+        """
+        exclusion_list = []
+        #grouping_values = versionable.version_list_filter_lookups
         queryset = queryset.filter(versions__state__in=([state_selected]))
-        return queryset
+        for content in queryset:
+            grouper = getattr(content, versionable.grouper_field_name)
+            grouper_contents = versionable.for_grouper(grouper)
+            current_version = content.versions.first()
+            latest_version = grouper_contents.last().versions.first()
+            if latest_version != current_version:
+                exclusion_list.append(content.pk)
+
+        return queryset.exclude(id__in=exclusion_list)
+
     return queryset
 
 
