@@ -22,7 +22,7 @@ def _get_latest_version_for_grouping_values(versionable, content):
     return grouper_contents.last().versions.first()
 
 
-def _enforce_latest_version(versionable, queryset):
+def _get_latest_versions(versionable, queryset):
     exclusion_list = []
     for content in queryset:
         current_version = content.versions.first()
@@ -270,6 +270,17 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
+def get_latest_versions(queryset):
+    """TODO
+
+    :param queryset: A queryset
+    """
+    versionable = get_versionable_for_content(queryset.model)
+    if versionable:
+        return _get_latest_versions(versionable, queryset)
+    return queryset
+
+
 def apply_filters(queryset, state_selected):
     """If queryset's model is versionable returns objects in the selected
      state. Otherwise, returns the provided queryset.
@@ -280,7 +291,6 @@ def apply_filters(queryset, state_selected):
     versionable = get_versionable_for_content(queryset.model)
     if versionable:
         queryset = queryset.filter(versions__state__in=([state_selected]))
-        return _enforce_latest_version(versionable, queryset)
     return queryset
 
 
@@ -300,6 +310,9 @@ def get_all_reference_objects(content, state_selected=False):
     )
     if state_selected and state_selected != "all":
         querysets = list(apply_filters(qs, state_selected) for qs in querysets)
+
+    querysets = list(get_latest_versions(qs) for qs in querysets)
+
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
 
