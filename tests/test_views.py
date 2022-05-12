@@ -188,45 +188,88 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         self.language = "en"
 
     def test_view_draft_filter_applied(self):
+        other_language = "de"
         poll = PollFactory()
-        # Page 1 has 2 versions
-        # Latest version is DRAFT, previous version is UNPUBLISHED
+        # Latest version is DRAFT for en and de languages, previous versions are PUBLISHED
+        # With a draft filter both should be found
         page_1_version_1 = PageVersionFactory(
-            content__title="test1", content__language=self.language, state=UNPUBLISHED
+            content__title="test1", content__language=self.language, state=PUBLISHED
         )
+        page_1_grouper = page_1_version_1.content.page
         page_1_version_1_placeholder = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_1_version_1.content),
             object_id=page_1_version_1.content.id,
         )
-        add_plugin(page_1_version_1_placeholder, "PollPlugin", "en", poll=poll)
+        add_plugin(page_1_version_1_placeholder, "PollPlugin", self.language, poll=poll)
         page_1_version_2 = PageVersionFactory(
-            content__page=page_1_version_1.content.page,
+            content__page=page_1_grouper,
             content__title="test1", content__language=self.language, state=DRAFT
         )
         page_1_version_2_placeholder = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_1_version_2.content),
             object_id=page_1_version_2.content.id,
         )
-        add_plugin(page_1_version_2_placeholder, "PollPlugin", "en", poll=poll)
-        # Page 2 has 2 versions
-        # Latest version is PUBLISHED, previous version is DRAFT
+        add_plugin(page_1_version_2_placeholder, "PollPlugin", self.language, poll=poll)
+
+        page_1_version_3 = PageVersionFactory(
+            content__page=page_1_grouper,
+            content__title="test1", content__language=other_language, state=PUBLISHED
+        )
+        page_1_version_3_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_3.content),
+            object_id=page_1_version_3.content.id,
+        )
+        add_plugin(page_1_version_3_placeholder, "PollPlugin", other_language, poll=poll)
+        page_1_version_4 = PageVersionFactory(
+            content__page=page_1_grouper,
+            content__title="test1", content__language=other_language, state=DRAFT
+        )
+        page_1_version_4_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_4.content),
+            object_id=page_1_version_4.content.id,
+        )
+        add_plugin(page_1_version_4_placeholder, "PollPlugin", other_language, poll=poll)
+
+        # Page 2 has 3 versions
+        # Latest version is PUBLISHED for en and de languages, previous versions are DRAFT
+        # With a draft filter neither should be found
         page_2_version_1 = PageVersionFactory(
             content__title="test2", content__language=self.language, state=DRAFT
         )
+        page_2_grouper = page_2_version_1.content.page
         page_2_version_1_placeholder = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_2_version_1.content),
             object_id=page_2_version_1.content.id,
         )
-        add_plugin(page_2_version_1_placeholder, "PollPlugin", "en", poll=poll)
+        add_plugin(page_2_version_1_placeholder, "PollPlugin", self.language, poll=poll)
         page_2_version_2 = PageVersionFactory(
-            content__page=page_2_version_1.content.page,
+            content__page=page_2_grouper,
             content__title="test2", content__language=self.language, state=PUBLISHED
         )
         page_2_version_2_placeholder = PlaceholderFactory(
             content_type=ContentType.objects.get_for_model(page_2_version_2.content),
             object_id=page_2_version_2.content.id,
         )
-        add_plugin(page_2_version_2_placeholder, "PollPlugin", "en", poll=poll)
+        add_plugin(page_2_version_2_placeholder, "PollPlugin", self.language, poll=poll)
+
+        page_2_version_3 = PageVersionFactory(
+            content__page=page_2_grouper,
+            content__title="test2", content__language=other_language, state=DRAFT
+        )
+        page_2_version_3_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_3.content),
+            object_id=page_2_version_3.content.id,
+        )
+        add_plugin(page_2_version_3_placeholder, "PollPlugin", other_language, poll=poll)
+        page_2_version_4 = PageVersionFactory(
+            content__page=page_2_grouper,
+            content__title="test2", content__language=other_language, state=PUBLISHED
+        )
+        page_2_version_4_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_4.content),
+            object_id=page_2_version_4.content.id,
+        )
+        add_plugin(page_2_version_4_placeholder, "PollPlugin", other_language, poll=poll)
 
         # When draft is selected only the draft entries should be shown
         version_selection = f"?state={DRAFT}"
@@ -241,7 +284,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(
             response.context["querysets"][0],
-            [page_1_version_2.content.pk],
+            [page_1_version_2.content.pk, page_1_version_4.content.pk],
             transform=lambda x: x.pk,
             ordered=False,
         )

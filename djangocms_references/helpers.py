@@ -10,6 +10,34 @@ from django.db.models import F, Q
 from cms.models import CMSPlugin
 
 
+def _get_latest_version_for_grouper(versionable, content):
+    """Finds the latest version for a content object using the
+    grouper and grouper filtering values.
+
+    :param versionable: VersionableItem
+    :param content: A content object
+    :returns: A Version object, or None
+    """
+    grouper = getattr(content, versionable.grouper_field_name)
+    # grouping_values = versionable.version_list_filter_lookups
+    grouper_contents = versionable.for_grouper(grouper)
+    return grouper_contents.last().versions.first()
+
+
+def _enforce_latest_version(versionable, queryset):
+    exclusion_list = []
+    for content in queryset:
+        current_version = content.versions.first()
+        latest_version = _get_latest_version_for_grouper(versionable, content)
+
+        if latest_version != current_version:
+            exclusion_list.append(content.pk)
+
+    if exclusion_list:
+        return queryset.exclude(id__in=exclusion_list)
+    return queryset
+
+
 def get_versionable_for_content(content):
     """Returns a VersionableItem for a given content object (or content model).
 
@@ -253,27 +281,8 @@ def apply_filters(queryset, state_selected):
     """
     versionable = get_versionable_for_content(queryset.model)
     if versionable:
-
-        """
-        _get_latest_version_for_grouper
-        For each item
-            get grouping values for queryset.model
-            Is this the latest version for this grouper (with grouping values)
-            
-        """
-        exclusion_list = []
-        #grouping_values = versionable.version_list_filter_lookups
         queryset = queryset.filter(versions__state__in=([state_selected]))
-        for content in queryset:
-            grouper = getattr(content, versionable.grouper_field_name)
-            grouper_contents = versionable.for_grouper(grouper)
-            current_version = content.versions.first()
-            latest_version = grouper_contents.last().versions.first()
-            if latest_version != current_version:
-                exclusion_list.append(content.pk)
-
-        return queryset.exclude(id__in=exclusion_list)
-
+        return _enforce_latest_version(versionable, queryset)
     return queryset
 
 
