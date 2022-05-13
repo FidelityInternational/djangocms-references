@@ -36,6 +36,13 @@ urlpatterns = [
 ]
 
 
+def get_view_url(content_type_id, object_id):
+    return reverse(
+        "djangocms_references:references-index",
+        kwargs={"content_type_id": content_type_id, "object_id": object_id},
+    )
+
+
 @override_settings(ROOT_URLCONF=__name__)
 class ReferencesViewTestCases(CMSTestCase):
     def setUp(self):
@@ -43,14 +50,8 @@ class ReferencesViewTestCases(CMSTestCase):
         self.superuser = self.get_superuser()
         self.page = PageContentFactory()
         self.content = ContentType.objects.get_for_model(self.page)
-        self.view_url = self.get_view_url(self.content.pk, self.page.id)
+        self.view_url = get_view_url(self.content.pk, self.page.id)
         self.language = "en"
-
-    def get_view_url(self, content_type_id, object_id):
-        return reverse(
-            "djangocms_references:references-index",
-            kwargs={"content_type_id": content_type_id, "object_id": object_id},
-        )
 
     def test_view_endpoint_access_with_anonymous_user(self):
         response = self.client.get(self.view_url)
@@ -92,14 +93,14 @@ class ReferencesViewTestCases(CMSTestCase):
     def test_view_invalid_content_type(self):
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(content_type_id=0, object_id=1)
+                get_view_url(content_type_id=0, object_id=1)
             )
         self.assertEqual(response.status_code, 404)
 
     def test_view_invalid_object(self):
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(content_type_id=self.content.id, object_id=0)
+                get_view_url(content_type_id=self.content.id, object_id=0)
             )
         self.assertEqual(response.status_code, 404)
 
@@ -118,7 +119,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(
+                get_view_url(
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
                 )
@@ -152,7 +153,7 @@ class ReferencesViewTestCases(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_view_url(
+                get_view_url(
                     content_type_id=ContentType.objects.get_for_model(poll).pk,
                     object_id=poll.id,
                 )
@@ -175,229 +176,253 @@ class ReferencesViewTestCases(CMSTestCase):
 
         self.assertEqual(response.context["extra_columns"], [extra_column])
 
+
+@override_settings(ROOT_URLCONF=__name__)
+class ReferencesViewVersionFilterTestCases(CMSTestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.superuser = self.get_superuser()
+        self.poll = PollFactory()
+        self.admin_endpoint = get_view_url(
+            content_type_id=ContentType.objects.get_for_model(self.poll).pk,
+            object_id=self.poll.id,
+        )
+
+    def _create_data_set_for_latest_versions(self, version_state_1, version_state_2, filter_applied=None):
+        language_1 = "en"
+        language_2 = "de"
+
+        # Page 1 has 4 versions
+        # Latest version uses the supplied version_state_1 for en and de languages, previous
+        # versions use the supplied version_state_2
+        page_1_version_1 = PageVersionFactory(
+            content__language=language_1, state=version_state_1
+        )
+        page_1_grouper = page_1_version_1.content.page
+        page_1_version_1_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_1.content),
+            object_id=page_1_version_1.content.id,
+        )
+        add_plugin(page_1_version_1_placeholder, "PollPlugin", language_1, poll=self.poll)
+        page_1_version_2 = PageVersionFactory(
+            content__page=page_1_grouper,
+            content__language=language_1, state=version_state_2
+        )
+        page_1_version_2_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_2.content),
+            object_id=page_1_version_2.content.id,
+        )
+        add_plugin(page_1_version_2_placeholder, "PollPlugin", language_1, poll=self.poll)
+
+        page_1_version_3 = PageVersionFactory(
+            content__page=page_1_grouper,
+            content__language=language_2, state=version_state_1
+        )
+        page_1_version_3_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_3.content),
+            object_id=page_1_version_3.content.id,
+        )
+        add_plugin(page_1_version_3_placeholder, "PollPlugin", language_2, poll=self.poll)
+        page_1_version_4 = PageVersionFactory(
+            content__page=page_1_grouper,
+            content__language=language_2, state=version_state_2
+        )
+        page_1_version_4_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_1_version_4.content),
+            object_id=page_1_version_4.content.id,
+        )
+        add_plugin(page_1_version_4_placeholder, "PollPlugin", language_2, poll=self.poll)
+
+        # Page 2 has 4 versions
+        # Latest version uses the supplied version_state_2 for en and de languages, previous
+        # versions use the supplied version_state_1. This is the opposite arrangement to the
+        # versions created above.
+        # by using the opposite state filter neither should be found because the "latest"
+        # versions are not the same as the filter set.
+        page_2_version_1 = PageVersionFactory(
+            content__language=language_1, state=version_state_2
+        )
+        page_2_grouper = page_2_version_1.content.page
+        page_2_version_1_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_1.content),
+            object_id=page_2_version_1.content.id,
+        )
+        add_plugin(page_2_version_1_placeholder, "PollPlugin", language_1, poll=self.poll)
+        page_2_version_2 = PageVersionFactory(
+            content__page=page_2_grouper,
+            content__language=language_1, state=version_state_1
+        )
+        page_2_version_2_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_2.content),
+            object_id=page_2_version_2.content.id,
+        )
+        add_plugin(page_2_version_2_placeholder, "PollPlugin", language_1, poll=self.poll)
+
+        page_2_version_3 = PageVersionFactory(
+            content__page=page_2_grouper,
+            content__language=language_2, state=version_state_2
+        )
+        page_2_version_3_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_3.content),
+            object_id=page_2_version_3.content.id,
+        )
+        add_plugin(page_2_version_3_placeholder, "PollPlugin", language_2, poll=self.poll)
+        page_2_version_4 = PageVersionFactory(
+            content__page=page_2_grouper,
+            content__language=language_2, state=version_state_1
+        )
+        page_2_version_4_placeholder = PlaceholderFactory(
+            content_type=ContentType.objects.get_for_model(page_2_version_4.content),
+            object_id=page_2_version_4.content.id,
+        )
+        add_plugin(page_2_version_4_placeholder, "PollPlugin", language_2, poll=self.poll)
+
+        # When a filter is applied only the latest versions for a grouper should be shown
+        if filter_applied:
+            # The latest versions of each grouper / grouping values version set
+            return [
+                page_1_version_2.content.pk,
+                page_1_version_4.content.pk,
+            ]
+        # Otherwise all a groupers latest versions should be shown
+        return [
+            page_1_version_2.content.pk,
+            page_1_version_4.content.pk,
+            page_2_version_2.content.pk,
+            page_2_version_4.content.pk,
+        ]
+
     def test_view_draft_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language
-        )
-        version2 = PageVersionFactory(
-            content__title="test2", content__language=self.language, state=PUBLISHED
-        )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content1),
-            object_id=page_content1.id,
-        )
-
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
-
-        # When draft is selected only the draft entries should be shown
-        version_selection = f"?state={DRAFT}"
-        admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll).pk,
-            object_id=poll.id,
+        """
+        When draft is selected only the draft entries should be shown
+        """
+        filter_applied = DRAFT
+        latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=PUBLISHED,
+            version_state_2=DRAFT,
+            filter_applied=filter_applied,
         )
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 1)
-        self.assertIn(page_content1, response.context["querysets"][0])
-        self.assertNotIn(page_content2, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_published_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language,
-        )
-        version2 = PageVersionFactory(
-            content__title="test2", content__language=self.language, state=PUBLISHED
-        )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
-
-        # When published is selected only the published entries should be shown
-        version_selection = f"?state={PUBLISHED}"
-        admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll).pk,
-            object_id=poll.id,
+        """
+        When published is selected only the published entries should be shown
+        """
+        filter_applied = PUBLISHED
+        latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=PUBLISHED,
+            filter_applied=filter_applied,
         )
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 1)
-        self.assertNotIn(page_content1, response.context["querysets"][0])
-        self.assertIn(page_content2, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_archived_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language,
-        )
-        version2 = PageVersionFactory(
-            content__title="test2", content__language=self.language, state=ARCHIVED
-        )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
-
-        # When archived is selected only the archived entries should be shown
-        version_selection = f"?state={ARCHIVED}"
-        admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll).pk,
-            object_id=poll.id,
+        """
+        When archived is selected only the archived entries should be shown
+        """
+        filter_applied = ARCHIVED
+        latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=ARCHIVED,
+            filter_applied=filter_applied,
         )
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 1)
-        self.assertNotIn(page_content1, response.context["querysets"][0])
-        self.assertIn(page_content2, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_unpublised_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language,
-        )
-        version2 = PageVersionFactory(
-            content__title="test2", content__language=self.language, state=UNPUBLISHED
-        )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
-
-        # When unpublished is selected only the unpublished entries should be shown
-        version_selection = f"?state={UNPUBLISHED}"
-        admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll).pk,
-            object_id=poll.id,
+        """
+        When unpublished is selected only the unpublished entries should be shown
+        """
+        filter_applied = UNPUBLISHED
+        latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=UNPUBLISHED,
+            filter_applied=filter_applied,
         )
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 1)
-        self.assertNotIn(page_content1, response.context["querysets"][0])
-        self.assertIn(page_content2, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_no_filter_applied(self):
-        version1 = PageVersionFactory(
-            content__title="test1", content__language=self.language, state=PUBLISHED
+        """
+        When all filter is selected, all entries should be shown
+        """
+        draft_latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=PUBLISHED,
+            version_state_2=DRAFT,
         )
-        version2 = PageVersionFactory(
-            content__title="test2", content__language=self.language, state=DRAFT
+        published_latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=PUBLISHED,
         )
-        version3 = PageVersionFactory(
-            content__title="test3", content__language=self.language, state=ARCHIVED
+        archived_latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=ARCHIVED,
         )
-        version4 = PageVersionFactory(
-            content__title="test3", content__language=self.language, state=UNPUBLISHED
-        )
-
-        page_content1 = version1.content
-        page_content2 = version2.content
-        page_content3 = version3.content
-        page_content4 = version4.content
-
-        placeholder1 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content1),
-            object_id=page_content1.id,
+        unpublished_latest_versions = self._create_data_set_for_latest_versions(
+            version_state_1=DRAFT,
+            version_state_2=UNPUBLISHED,
         )
 
-        placeholder2 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content2),
-            object_id=page_content2.id,
-        )
-
-        placeholder3 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content3),
-            object_id=page_content3.id,
-        )
-
-        placeholder4 = PlaceholderFactory(
-            content_type=ContentType.objects.get_for_model(page_content4),
-            object_id=page_content4.id,
-        )
-
-        poll = PollFactory()
-        # add poll plugin to page
-        add_plugin(placeholder1, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder2, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder3, "PollPlugin", "en", poll=poll, template=0)
-        add_plugin(placeholder4, "PollPlugin", "en", poll=poll, template=0)
-
-        # When all filter is selected, all entries should be shown
-        version_selection = "?state=all"
-        admin_endpoint = self.get_view_url(
-            content_type_id=ContentType.objects.get_for_model(poll).pk,
-            object_id=poll.id,
-        )
-
+        # Try with all state set
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(admin_endpoint + version_selection)
+            response = self.client.get(self.admin_endpoint + "?state=all")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["querysets"][0].count(), 4)
-        self.assertIn(page_content1, response.context["querysets"][0])
-        self.assertIn(page_content2, response.context["querysets"][0])
-        self.assertIn(page_content3, response.context["querysets"][0])
-        self.assertIn(page_content4, response.context["querysets"][0])
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            draft_latest_versions + published_latest_versions +
+            archived_latest_versions + unpublished_latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
+
+        # Try again with no state set
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.admin_endpoint)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertQuerysetEqual(
+            response.context["querysets"][0],
+            draft_latest_versions + published_latest_versions +
+            archived_latest_versions + unpublished_latest_versions,
+            transform=lambda x: x.pk,
+            ordered=False,
+        )

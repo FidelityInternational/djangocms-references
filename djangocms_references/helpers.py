@@ -10,6 +10,39 @@ from django.db.models import F, Q
 from cms.models import CMSPlugin
 
 
+def _get_latest_version_for_grouping_values(versionable, content):
+    """Finds the latest version for a content object using the
+    grouper and grouper filtering values.
+
+    :param versionable: VersionableItem
+    :param content: A content object
+    :returns: A Version object, or None
+    """
+    grouper_contents = versionable.for_content_grouping_values(content)
+    return grouper_contents.last().versions.first()
+
+
+def _get_latest_versions_by_grouping_values(versionable, queryset):
+    """Find all of a groupers versions, filter the supplied queryset
+    to ensure that only the latest version is supplied.
+
+    :param versionable: VersionableItem
+    :param queryset: A queryset
+    :returns: A queryset
+    """
+    exclusion_list = []
+    for content in queryset:
+        current_version = content.versions.first()
+        latest_version = _get_latest_version_for_grouping_values(versionable, content)
+
+        if latest_version != current_version:
+            exclusion_list.append(content.pk)
+
+    if exclusion_list:
+        return queryset.exclude(id__in=exclusion_list)
+    return queryset
+
+
 def get_versionable_for_content(content):
     """Returns a VersionableItem for a given content object (or content model).
 
@@ -127,7 +160,8 @@ def _get_reference_objects(content, models_func):
     """
     for reference in models_func(content.__class__):
         model, lookups = reference
-        qs = model.objects.filter(get_filters(content, lookups))
+        filters = get_filters(content, lookups)
+        qs = model.objects.filter(filters)
         if qs.exists():
             yield qs
 
@@ -243,6 +277,20 @@ def apply_additional_modifiers(queryset):
     return queryset
 
 
+def get_latest_versions_by_grouping_values(queryset):
+    """Filter the supplied queryset to ensure that only the latest version is supplied.
+    Only relevant for versioned objects that have the ability to have multiple copies
+    of content.
+
+    :param queryset: A queryset
+    :returns: A queryset
+    """
+    versionable = get_versionable_for_content(queryset.model)
+    if versionable:
+        return _get_latest_versions_by_grouping_values(versionable, queryset)
+    return queryset
+
+
 def apply_filters(queryset, state_selected):
     """If queryset's model is versionable returns objects in the selected
      state. Otherwise, returns the provided queryset.
@@ -250,9 +298,9 @@ def apply_filters(queryset, state_selected):
     :param queryset: A queryset
     :param state_selected: Filter state selected by the user
     """
-    if get_versionable_for_content(queryset.model):
+    versionable = get_versionable_for_content(queryset.model)
+    if versionable:
         queryset = queryset.filter(versions__state__in=([state_selected]))
-        return queryset
     return queryset
 
 
@@ -272,6 +320,10 @@ def get_all_reference_objects(content, state_selected=False):
     )
     if state_selected and state_selected != "all":
         querysets = list(apply_filters(qs, state_selected) for qs in querysets)
+
+    # Ensure only the latest versions are displayed
+    querysets = list(get_latest_versions_by_grouping_values(qs) for qs in querysets)
+
     return list(apply_additional_modifiers(qs) for qs in querysets)
 
 

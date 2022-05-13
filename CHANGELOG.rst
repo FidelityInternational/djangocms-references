@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: All versions are shown for versionable content objects, only the latest versions for content objects should be shown.
 
 1.4.0 (2022-04-28)
 ==================
