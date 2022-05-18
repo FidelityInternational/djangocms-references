@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Preview link should close and open the link outside of the sideframe
 
 1.4.1 (2022-05-13)
 ==================
