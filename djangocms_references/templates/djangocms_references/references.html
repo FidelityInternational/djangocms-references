@@ -6,6 +6,11 @@
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}">
 {% endblock %}
 
+{% block extrahead %}
+  {{ block.super }}
+  <script src="{% static 'djangocms_references/js/actions.js' %}"></script>
+{% endblock %}
+
 {% block coltype %}flex{% endblock %}
 
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
