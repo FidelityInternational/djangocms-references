@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: URL of `show references` in action list of djangocms-versioning-filer list page
 
 1.4.2 (2022-05-23)
 ==================
