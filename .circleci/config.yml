@@ -10,7 +10,7 @@ py37default: &py37default
    - attach_workspace:
        at: /tmp/images
    - run: docker load -i /tmp/images/py37.tar || true
-   - run: docker run py37 tox -e $CIRCLE_STAGE
+   - run: docker run py37 tox -e $CIRCLE_JOB
 
 py38default: &py38default
   docker:
@@ -22,7 +22,7 @@ py38default: &py38default
    - attach_workspace:
        at: /tmp/images
    - run: docker load -i /tmp/images/py38.tar || true
-   - run: docker run py38 tox -e $CIRCLE_STAGE
+   - run: docker run py38 tox -e $CIRCLE_JOB
 
 py39default: &py39default
   docker:
@@ -34,7 +34,7 @@ py39default: &py39default
    - attach_workspace:
        at: /tmp/images
    - run: docker load -i /tmp/images/py39.tar || true
-   - run: docker run py39 tox -e $CIRCLE_STAGE
+   - run: docker run py39 tox -e $CIRCLE_JOB
 
 
 py37_requires: &py37_requires
