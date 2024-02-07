@@ -8,6 +8,7 @@ HELPER_SETTINGS = {
         "djangocms_references.test_utils.polls",
         "djangocms_references.test_utils.nested_references_app",
     ],
+    "CMS_CONFIRM_VERSION4": True,
     "MIGRATION_MODULES": {
         "auth": None,
         "cms": None,
