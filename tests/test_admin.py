@@ -6,6 +6,7 @@ from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_alias.admin import AliasContentAdmin
 from djangocms_alias.models import Alias, AliasContent, Category
+from djangocms_versioning.models import Version
 
 
 class AliasAdminReferencesMonkeyPatchTestCase(CMSTestCase):
@@ -22,6 +23,9 @@ class AliasAdminReferencesMonkeyPatchTestCase(CMSTestCase):
             name="Alias Reference Monkey Patch Content",
             language="en",
         )
+
+            
+        Version.objects.create(content=alias_content, created_by=request.user)
         content_type = ContentType.objects.get(app_label=alias._meta.app_label, model=alias._meta.model_name)
         alias_admin = AliasContentAdmin(AliasContent, admin.AdminSite())
         func = alias_admin.get_list_display(request)[-1]
