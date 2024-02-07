@@ -7,5 +7,5 @@ tox
 
 # Unreleased django-cms 4.0 compatible packages
 https://github.com/django-cms/django-cms/tarball/4.0.0#egg=django-cms
-https://github.com/django-cms/djangocms-versioning/tarball/master#egg=djangocms-versioning
-https://github.com/django-cms/djangocms-alias/tarball/master#egg=djangocms-alias
+https://github.com/django-cms/djangocms-versioning/tarball/1.2.2#egg=djangocms-versioning
+https://github.com/django-cms/djangocms-alias/tarball/1.11.0#egg=djangocms-alias
