@@ -4,6 +4,9 @@ Changelog
 
 Unreleased
 ==========
+* fix: URL of `show references` in action list of djangocms-versioning-filer list page
+* fix: Added CMS_CONFIRM_VERSION4 in test_settings to show intent of using v4
+* fix: fix circleci build errors
 
 1.4.2 (2022-05-23)
 ==================
