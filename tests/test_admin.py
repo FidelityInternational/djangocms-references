@@ -24,7 +24,6 @@ class AliasAdminReferencesMonkeyPatchTestCase(CMSTestCase):
             language="en",
         )
 
-            
         Version.objects.create(content=alias_content, created_by=request.user)
         content_type = ContentType.objects.get(app_label=alias._meta.app_label, model=alias._meta.model_name)
         alias_admin = AliasContentAdmin(AliasContent, admin.AdminSite())
