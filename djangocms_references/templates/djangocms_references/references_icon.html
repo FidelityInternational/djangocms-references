@@ -1,2 +1,5 @@
 {% load static i18n %}
-<a class="btn cms-versioning-action-btn cms-form-get-method js-versioning-action" href="{{ url }}" title="{% trans "Show References" %}"><img src="{% static 'djangocms_references/svg/references.svg' %}"></a>
+<a class="btn cms-versioning-action-btn cms-form-get-method js-versioning-action
+ {% if keepsideframe|default_if_none: True %}js-versioning-keep-sideframe {% else %}js-versioning-close-sideframe {% endif %}
+ "
+ href="{{ url }}" title="{% trans "Show References" %}"><img src="{% static 'djangocms_references/svg/references.svg' %}"></a>
