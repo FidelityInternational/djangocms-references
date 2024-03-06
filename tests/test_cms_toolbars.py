@@ -1,8 +1,8 @@
-from django.conf.urls import include
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
+from django.urls import include, path
 from django.urls import re_path
 
 from cms.middleware.toolbar import ToolbarMiddleware
@@ -18,7 +18,7 @@ from djangocms_references.test_utils.factories import (
 
 
 urlpatterns = [
-    re_path(r"^references/", include("djangocms_references.urls")),
+    path("references/", include("djangocms_references.urls")),
     re_path(r"^admin/", admin.site.urls),
 ]
 
