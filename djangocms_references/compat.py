@@ -1,9 +1,10 @@
 from cms import __version__ as cms_version
 
-from packaging.version import Version
 
-
-DJANGO_CMS_4_1 = Version(cms_version) >= Version('4.1')
+try:
+    from packaging.version import Version
+except ModuleNotFoundError:
+    from distutils.version import LooseVersion as Version
 
 
 def is_versioning_installed():
@@ -13,6 +14,9 @@ def is_versioning_installed():
         return False
     else:
         return True
+
+
+DJANGO_CMS_4_1 = Version(cms_version) >= Version('4.1')
 
 
 VERSIONING_INSTALLED = is_versioning_installed()
