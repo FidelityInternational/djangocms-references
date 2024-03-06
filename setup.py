@@ -4,7 +4,7 @@ import djangocms_references
 
 
 INSTALL_REQUIREMENTS = [
-    "Django>=2.2,<4.0",
+    "Django>=3.2,<5.0",
     "django-cms"
 ]
 

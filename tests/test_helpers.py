@@ -1,4 +1,3 @@
-from unittest import skipIf
 from unittest.mock import Mock, patch
 
 from django.apps import apps
@@ -9,7 +8,6 @@ from django.test import TestCase
 from cms.api import add_plugin
 
 from djangocms_references import helpers
-from djangocms_references.compat import DJANGO_GTE_21
 from djangocms_references.helpers import (
     _get_reference_models,
     combine_querysets_of_same_models,
@@ -135,10 +133,6 @@ class GetReferenceModelsTestCase(TestCase):
             )
 
 
-@skipIf(
-    not DJANGO_GTE_21,
-    "Reliable Q object comparison is available starting with Django 2.1",
-)
 class GetFiltersTestCase(TestCase):
     def test_get_filters_empty(self):
         self.assertEqual(get_filters("foo", []), Q())

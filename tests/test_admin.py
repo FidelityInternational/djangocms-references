@@ -1,3 +1,5 @@
+from unittest import skipIf
+
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
@@ -8,8 +10,14 @@ from djangocms_alias.admin import AliasContentAdmin
 from djangocms_alias.models import Alias, AliasContent, Category
 from djangocms_versioning.models import Version
 
+from djangocms_references.compat import DJANGO_CMS_4_1
+
 
 class AliasAdminReferencesMonkeyPatchTestCase(CMSTestCase):
+    @skipIf(
+        DJANGO_CMS_4_1,
+        "AliasContentAdmin doesn't derive from `ExtendedVersionAdminMixin`, so no `get_list_display` exist",
+    )
     def test_list_display(self):
         """
         The monkeypatch extends the alias admin, adding the show references link

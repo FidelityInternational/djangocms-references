@@ -1,13 +1,12 @@
 from unittest.mock import patch
 
-from django.conf.urls import include
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import reverse
 from django.test import RequestFactory
 from django.test.utils import override_settings
-from django.urls import re_path
+from django.urls import include, path, re_path
 
 from cms.api import add_plugin
 from cms.test_utils.testcases import CMSTestCase
@@ -31,7 +30,7 @@ from djangocms_references.test_utils.factories import (
 
 
 urlpatterns = [
-    re_path(r"^references/", include(djangocms_references.urls)),
+    path("references/", include(djangocms_references.urls)),
     re_path(r"^admin/", admin.site.urls),
 ]
 
@@ -373,7 +372,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             latest_versions,
             transform=lambda x: x.pk,
@@ -406,7 +405,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint + "?state=all")
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             draft_latest_versions + published_latest_versions +
             archived_latest_versions + unpublished_latest_versions,
@@ -419,7 +418,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint)
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             draft_latest_versions + published_latest_versions +
             archived_latest_versions + unpublished_latest_versions,

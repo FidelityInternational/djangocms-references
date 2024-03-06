@@ -4,6 +4,8 @@ from django.urls import reverse_lazy
 
 from djangocms_alias import admin
 
+from djangocms_references.compat import DJANGO_CMS_4_1
+
 
 def _get_references_link(self, obj, request):
     alias_content_type = ContentType.objects.get(
@@ -19,9 +21,6 @@ def _get_references_link(self, obj, request):
     return render_to_string("djangocms_references/references_icon.html", {"url": url})
 
 
-admin.AliasContentAdmin._get_references_link = _get_references_link
-
-
 def get_list_actions(func):
     """
     Add references action to alias list display
@@ -33,6 +32,11 @@ def get_list_actions(func):
     return inner
 
 
-admin.AliasContentAdmin.get_list_actions = get_list_actions(
-    admin.AliasContentAdmin.get_list_actions
-)
+if not DJANGO_CMS_4_1:
+    admin.AliasContentAdmin._get_references_link = _get_references_link
+    admin.AliasContentAdmin.get_list_actions = get_list_actions(
+        admin.AliasContentAdmin.get_list_actions
+    )
+else:
+    # TODO: add reference button for django cms 4.1
+    pass

@@ -4,6 +4,10 @@ Changelog
 
 Unreleased
 ==========
+* Python 3.10 support added
+* Python 3.7 support removed
+* Django 4.2 support added
+* Django CMS 4.1 support added
 
 1.4.3 (2024-02-07)
 ==========
