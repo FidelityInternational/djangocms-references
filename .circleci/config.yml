@@ -99,8 +99,6 @@ jobs:
   py39-dj32-sqlite-cms40:
     <<: *py39default
 
-  py38-dj42-sqlite-cms41:
-    <<: *py38default
   py39-dj42-sqlite-cms41:
     <<: *py39default
   py310-dj42-sqlite-cms41:
@@ -129,9 +127,6 @@ workflows:
           requires:
             - py39_base
 
-      - py38-dj42-sqlite-cms41:
-          requires:
-            - py38_base
       - py39-dj42-sqlite-cms41:
           requires:
             - py39_base
