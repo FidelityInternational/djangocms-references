@@ -98,8 +98,6 @@ jobs:
     <<: *py38default
   py39-dj32-sqlite-cms40:
     <<: *py39default
-  py310-dj32-sqlite-cms40:
-    <<: *py310default
 
   py38-dj42-sqlite-cms41:
     <<: *py38default
@@ -119,10 +117,10 @@ workflows:
       - py310_base
       - flake8:
           requires:
-            - py39_base
+            - py310_base
       - isort:
           requires:
-            - py39_base
+            - py310_base
 
       - py38-dj32-sqlite-cms40:
           requires:
@@ -130,9 +128,6 @@ workflows:
       - py39-dj32-sqlite-cms40:
           requires:
             - py39_base
-      - py310-dj32-sqlite-cms40:
-          requires:
-            - py310_base
 
       - py38-dj42-sqlite-cms41:
           requires:
