@@ -8,8 +8,9 @@ from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_alias.admin import AliasContentAdmin
 from djangocms_alias.models import Alias, AliasContent, Category
-from djangocms_references.compat import DJANGO_CMS_4_1
 from djangocms_versioning.models import Version
+
+from djangocms_references.compat import DJANGO_CMS_4_1
 
 
 class AliasAdminReferencesMonkeyPatchTestCase(CMSTestCase):
