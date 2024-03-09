@@ -306,7 +306,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             latest_versions,
             transform=lambda x: x.pk,
@@ -328,7 +328,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             latest_versions,
             transform=lambda x: x.pk,
@@ -350,7 +350,7 @@ class ReferencesViewVersionFilterTestCases(CMSTestCase):
             response = self.client.get(self.admin_endpoint + f"?state={filter_applied}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["querysets"][0],
             latest_versions,
             transform=lambda x: x.pk,
