@@ -7,6 +7,7 @@ Unreleased
 * Python 3.10 support added
 * Python 3.7 support removed
 * Django 4.2 support added
+* Dropped Python 3.7 and below version support
 
 1.4.3 (2024-02-07)
 ==========

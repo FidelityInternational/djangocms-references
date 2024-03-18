@@ -4,3 +4,5 @@ factory-boy
 flake8
 isort
 tox
+
+https://github.com/django-cms/django-cms/tarball/release/4.0.1.x#egg=django-cms
