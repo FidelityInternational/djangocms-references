@@ -17,6 +17,8 @@ from djangocms_references.test_utils import factories
 from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll, PollContent
 
+from djangocms_snippet.models import SnippetGrouper
+
 
 class CMSConfigTestCase(TestCase):
     def test_int_reference_fields_cms_config_parameter(self):
@@ -131,7 +133,7 @@ class IntegrationTestCase(TestCase):
         reference_models = cms_extension.reference_models
         reference_plugins = cms_extension.reference_plugins
         expected_models = [Parent, Poll]
-        expected_plugins = [Alias, Poll]
+        expected_plugins = [Alias, Poll, SnippetGrouper]
 
         self.assertCountEqual(reference_models.keys(), expected_models)
         self.assertCountEqual(reference_plugins.keys(), expected_plugins)

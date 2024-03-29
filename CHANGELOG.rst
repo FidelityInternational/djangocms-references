@@ -8,6 +8,7 @@ Unreleased
 * Python 3.7 support removed
 * Django 4.2 support added
 * Dropped Python 3.7 and below version support
+* Add reference link for djangocms-snippet apps
 
 1.4.3 (2024-02-07)
 ==========

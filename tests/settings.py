@@ -2,6 +2,7 @@ HELPER_SETTINGS = {
     "SECRET_KEY": "djangocmsreferencestestsuitekey",
     "INSTALLED_APPS": [
         "djangocms_alias.apps.AliasConfig",
+        "djangocms_snippet.apps.SnippetConfig",
         "djangocms_references",
         "djangocms_versioning",
         "djangocms_references.test_utils.app_1",
@@ -16,6 +17,7 @@ HELPER_SETTINGS = {
         "djangocms_references": None,
         "djangocms_versioning": None,
         "djangocms_alias": None,
+        "djangocms_snippet": None,
         "djangocms_references.test_utils.polls": None,
     },
     "DEFAULT_AUTO_FIELD": "django.db.models.AutoField",
