@@ -11,13 +11,12 @@ from cms.toolbar.utils import get_object_preview_url
 from cms.utils.setup import configure_cms_apps
 
 from djangocms_alias.models import Alias
+from djangocms_snippet.models import SnippetGrouper
 
 from djangocms_references import cms_config
 from djangocms_references.test_utils import factories
 from djangocms_references.test_utils.app_1.models import Child, Parent
 from djangocms_references.test_utils.polls.models import Poll, PollContent
-
-from djangocms_snippet.models import SnippetGrouper
 
 
 class CMSConfigTestCase(TestCase):
