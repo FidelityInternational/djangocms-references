@@ -8,9 +8,10 @@ from djangocms_snippet import admin as SnippetOriginalAdmin
 
 def generate_get_references_link(content_grouper):
     def _get_references_link(self, obj, request):
+        _obj_grouper_meta = getattr(obj, content_grouper)._meta
         content_type = ContentType.objects.get(
-            app_label=getattr(obj, content_grouper)._meta.app_label,
-            model=getattr(obj, content_grouper)._meta.model_name,
+            app_label=_obj_grouper_meta.app_label,
+            model=_obj_grouper_meta.model_name,
         )
 
         url = reverse_lazy(
