@@ -8,7 +8,8 @@ from djangocms_snippet import admin as SnippetOriginalAdmin
 
 def generate_get_references_link(content_grouper):
     def _get_references_link(self, obj, request):
-        _obj_grouper_meta = getattr(obj, content_grouper)._meta
+        obj_grouper = getattr(obj, content_grouper)
+        _obj_grouper_meta = obj_grouper._meta
         content_type = ContentType.objects.get(
             app_label=_obj_grouper_meta.app_label,
             model=_obj_grouper_meta.model_name,
@@ -16,7 +17,7 @@ def generate_get_references_link(content_grouper):
 
         url = reverse_lazy(
             "djangocms_references:references-index",
-            kwargs={"content_type_id": content_type.id, "object_id": getattr(obj, content_grouper).id}
+            kwargs={"content_type_id": content_type.id, "object_id": obj_grouper.id}
         )
 
         return render_to_string("djangocms_references/references_icon.html", {"url": url})
