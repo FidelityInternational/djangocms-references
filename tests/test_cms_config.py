@@ -11,6 +11,7 @@ from cms.toolbar.utils import get_object_preview_url
 from cms.utils.setup import configure_cms_apps
 
 from djangocms_alias.models import Alias
+from djangocms_snippet.models import SnippetGrouper
 
 from djangocms_references import cms_config
 from djangocms_references.test_utils import factories
@@ -131,7 +132,7 @@ class IntegrationTestCase(TestCase):
         reference_models = cms_extension.reference_models
         reference_plugins = cms_extension.reference_plugins
         expected_models = [Parent, Poll]
-        expected_plugins = [Alias, Poll]
+        expected_plugins = [Alias, Poll, SnippetGrouper]
 
         self.assertCountEqual(reference_models.keys(), expected_models)
         self.assertCountEqual(reference_plugins.keys(), expected_plugins)

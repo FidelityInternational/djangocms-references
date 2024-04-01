@@ -7,6 +7,7 @@ from cms.toolbar.utils import get_object_preview_url
 
 from djangocms_alias.models import Alias as AliasModel, AliasContent, Category
 from djangocms_alias.utils import is_versioning_enabled
+from djangocms_snippet.models import Snippet as SnippetContent, SnippetGrouper
 
 from djangocms_references.test_utils.factories import PollContentFactory
 from djangocms_references.test_utils.nested_references_app.models import (
@@ -67,6 +68,55 @@ class AliasReferencesIntegrationTestCase(CMSTestCase):
 
         self.assertContains(response, alias.name)
         self.assertContains(response, alias_plugin.plugin_type.lower())
+        self.assertContains(response, "pagecontent")
+        self.assertContains(response, get_object_preview_url(page_content))
+        self.assertContains(response, page_content.versions.first().state)
+
+
+class SnippetReferencesIntegrationTestCase(CMSTestCase):
+    def test_snippets_references_integration(self):
+        """
+        When opening the references for a given snippet, the objects which reference it should be listed
+        """
+        user = self.get_superuser()
+        snippet = SnippetGrouper.objects.create()
+        SnippetContent.objects.create(
+            name="Snippet Content",
+            snippet_grouper=snippet,
+            slug="snippet_reference_link_slug",
+        )
+        kwargs = {"created_by": user}
+        page = create_page(
+            title="References Integration Page for Snippet",
+            template="page.html",
+            language="en",
+            menu_title="",
+            in_navigation=True,
+            **kwargs
+        )
+        page_content = create_title("en", "Draft Page", page, created_by=user)
+        placeholder = page_content.get_placeholders().get(
+            slot="content"
+        )
+        add_plugin(
+            placeholder,
+            "SnippetPlugin",
+            language="en",
+            snippet_grouper=snippet,
+        )
+        snippet_content_type = ContentType.objects.get(
+            app_label=snippet._meta.app_label,
+            model=snippet._meta.model_name
+        )
+
+        references_endpoint = reverse(
+            "djangocms_references:references-index",
+            kwargs={"content_type_id": snippet_content_type.id, "object_id": snippet.id}
+        )
+        with self.login_user_context(user):
+            response = self.client.get(references_endpoint)
+
+        self.assertContains(response, snippet.name)
         self.assertContains(response, "pagecontent")
         self.assertContains(response, get_object_preview_url(page_content))
         self.assertContains(response, page_content.versions.first().state)

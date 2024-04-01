@@ -6,3 +6,4 @@ isort
 tox
 
 https://github.com/django-cms/django-cms/tarball/release/4.0.1.x#egg=django-cms
+https://github.com/django-cms/djangocms-snippet/tarball/support/django-cms-4.0.x#egg=djangocms-snippet
