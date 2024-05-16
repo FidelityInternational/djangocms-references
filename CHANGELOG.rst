@@ -4,8 +4,10 @@ Changelog
 
 Unreleased
 ==========
+
+1.5.0 (2024-05-16)
+==================
 * Python 3.10 support added
-* Python 3.7 support removed
 * Django 4.2 support added
 * Dropped Python 3.7 and below version support
 * Add reference link for djangocms-snippet app
